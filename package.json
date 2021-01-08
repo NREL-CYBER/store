@@ -4,8 +4,7 @@
   "description": "Frontend Cache for JSON Schema validated Data",
   "main": "./index.d.ts",
   "directories": {
-    "src": "src",
-    "tests": "tests"
+    "src": "src"
   },
   "dependencies": {
     "@types/uuid": "^8.3.0",
