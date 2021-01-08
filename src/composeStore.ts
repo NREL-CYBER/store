@@ -1,21 +1,21 @@
 import { ErrorObject } from "ajv";
-import Validator, { RootSchemaObject } from "validator";
-import { v4 } from "uuid";
-import { Store, StoreListener } from "./store";
 import produce from "immer";
+import { v4 } from "uuid";
+import Validator, { RootSchemaObject } from "validator";
 import create from "zustand";
+import { Store, StoreListener } from "./store";
 
 /**
  * Create an indexed storage & validation for vanillar TS
  * @param schema JSON Schema7 object for validating incoming data
  * @param defininition name of the collection (singular) should match json schema (if unspecified, entire schema is considered a definition)
  */
-export default function composeStore<DataType>(schema: RootSchemaObject, definition?: string) {
+
+const composeStore = <DataType>(schema: RootSchemaObject, definition?: string) => {
     let collection = definition ? definition : schema.$id ? schema.$id : "errorCollection"
     if (collection === "errorCollection") {
-        throw ("invalid JSON schema");
+        throw new Error("invalid JSON schema");
     }
-
     const validator = definition ? new Validator<DataType>(schema) : new Validator<DataType>(schema, definition);
 
     let errors: ErrorObject<string, Record<string, any>>[] = [];
@@ -125,7 +125,7 @@ export default function composeStore<DataType>(schema: RootSchemaObject, definit
         */
         setPartial: (partialUpdate) => {
             const newPartial = produce<DataType>(store().partial, partialUpdate, (events) => {
-                events.map((e) => console.log(e.op + " " + e.path + " " + JSON.stringify(e.value)));
+                events.forEach((e) => console.log(e.op + " " + e.path + " " + JSON.stringify(e.value)));
             });
             set({ partial: newPartial });
             store().listeners.forEach(callback => callback("partial", newPartial, "partial-update"))
@@ -191,3 +191,4 @@ export default function composeStore<DataType>(schema: RootSchemaObject, definit
     }))
 }
 
+export { composeStore };
