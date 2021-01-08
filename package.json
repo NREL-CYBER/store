@@ -2,7 +2,8 @@
   "name": "store",
   "version": "1.0.8",
   "description": "Frontend Cache for JSON Schema validated Data",
-  "main": "./index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "directories": {
     "src": "src"
   },
@@ -27,7 +28,7 @@
   },
   "scripts": {
     "build:types": "tsc --emitDeclarationOnly ",
-    "build": "babel src --out-dir lib --extensions .ts,.tsx",
+    "build": "babel src --out-dir dist --extensions .ts,.tsx",
     "test": "jest"
   },
   "repository": {

@@ -3,7 +3,7 @@ import produce from "immer";
 import { v4 } from "uuid";
 import Validator, { RootSchemaObject } from "validator";
 import create from "zustand";
-import { Store, StoreListener } from "./Store";
+import { Store, StoreListener } from "./store";
 
 /**
  * Create an indexed storage & validation for vanillar TS

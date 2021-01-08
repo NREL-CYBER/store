@@ -1,7 +1,7 @@
 import { ErrorObject } from "ajv";
 import Validator, { RootSchemaObject } from "validator";
 import { v4 } from "uuid";
-import { Store, StoreListener } from "./Store";
+import { Store, StoreListener } from "./store";
 import produce from "immer";
 import create from "zustand/vanilla";
 
