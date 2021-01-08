@@ -1,7 +1,5 @@
-import Validator from "validator";
 import groceriesSchema from "./schemas/groceries-schema.json"
-import composeStore from "../composeVanillaStore";
-
+import composeVanillaStore from "../src/composeVanillaStore"
 type Fruit = string;
 interface Veggie {
     veggieName: string
@@ -25,13 +23,13 @@ const invalidGroceryList = {
 }
 
 test("After insterting a valid brocoli, it is found in the veggie store", () => {
-    const veggieStoreAPI = composeStore<Veggie>(groceriesSchema, "veggie");
+    const veggieStoreAPI = composeVanillaStore<Veggie>(groceriesSchema, "veggie");
     veggieStoreAPI.getState().insert(brocolli);
     expect(veggieStoreAPI.getState().find(x => x.veggieName == brocolli.veggieName)).toBeTruthy()
 })
 
 test("Partial Grocery list comes with empty veggie array", () => {
-    const veggieStoreAPI = composeStore<Groceries>(groceriesSchema);
+    const veggieStoreAPI = composeVanillaStore<Groceries>(groceriesSchema);
     expect(veggieStoreAPI.getState().partial.fruits.length).toEqual(0);
 })
 
