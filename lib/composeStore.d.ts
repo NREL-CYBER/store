@@ -1,5 +1,5 @@
 import { RootSchemaObject } from "validator";
-import { Store } from "./store";
+import { Store } from "./Store";
 /**
  * Create an indexed storage & validation for vanillar TS
  * @param schema JSON Schema7 object for validating incoming data

@@ -1,13 +1,11 @@
 {
     "compilerOptions": {
-        "types": [],
-        "module": "ESNext",
         "declaration": true,
+        "module": "ESNext",
         "moduleResolution": "node",
         "target": "es6",
         "lib": [
-            "ESNext",
-            "DOM"
+            "ESNext"
         ],
         "esModuleInterop": true,
         "strict": true,
@@ -15,6 +13,12 @@
         "noEmitOnError": true,
         "baseUrl": ".",
         "resolveJsonModule": true,
-        "outDir": "out"
-    }
+        "outDir": "lib"
+    },
+    "include": [
+        "src/**/*"
+    ],
+    "exclude": [
+        "tests/**/*"
+    ],
 }
