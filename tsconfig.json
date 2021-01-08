@@ -1,12 +1,16 @@
 {
     "compilerOptions": {
+        "types": [
+            "index.d.ts"
+        ],
         "module": "ESNext",
+        "declaration": true,
         "moduleResolution": "node",
         "target": "es6",
         "lib": [
             "ESNext"
         ],
-        "esModuleInterop":true,
+        "esModuleInterop": true,
         "strict": true,
         "sourceMap": true,
         "noEmitOnError": true,
