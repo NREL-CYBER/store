@@ -20,7 +20,7 @@ export default function composeStore<DataType>(schema: RootSchemaObject, definit
         throw ("invalid JSON schema");
     }
 
-    const validator = definition ? new Validator<DataType>(schema) : new Validator<DataType>(schema, definition);
+    const validator = typeof definition === "string" ? new Validator<DataType>(schema, definition) : new Validator<DataType>(schema);
 
     let errors: ErrorObject<string, Record<string, any>>[] = [];
     /*

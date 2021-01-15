@@ -1,6 +1,7 @@
-const esModules = ['validator'].join('|');
+import type { Config } from '@jest/types';
 
-module.exports = {
+// Sync object
+const config: Config.InitialOptions = {
     "roots": [
         "<rootDir>/tests"
     ],
@@ -11,5 +12,7 @@ module.exports = {
     "transform": {
         "^.+\\.(ts|tsx)$": "ts-jest"
     },
-    "transformIgnorePatterns": [`/node_modules/(?!${esModules})`],
-}
+    "transformIgnorePatterns": [`/node_modules/(?!'validator')`],
+};
+export default config;
+
