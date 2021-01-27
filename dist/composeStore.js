@@ -38,7 +38,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
  * @param schema JSON Schema7 object for validating incoming data
  * @param defininition name of the collection (singular) should match json schema (if unspecified, entire schema is considered a definition)
  */
-var composeStore = function composeStore(schema, definition) {
+var composeStore = function composeStore(schema, definition, initialState) {
   var collection = definition ? definition : schema.$id ? schema.$id : "errorCollection";
 
   if (collection === "errorCollection") {
@@ -51,8 +51,21 @@ var composeStore = function composeStore(schema, definition) {
    * validate the initial state and show errors and filter invalid and process data.
    */
 
-  var records = {};
-  var index = [];
+  var records = initialState ? initialState : {};
+  var index = initialState ? Object.keys(initialState) : [];
+
+  if (initialState) {
+    var allValid = Object.values(records).map(function (item) {
+      return validator.validate(item);
+    }).reduce(function (x, y) {
+      return x && y;
+    });
+
+    if (!allValid) {
+      throw new Error("Invalid initial Value");
+    }
+  }
+
   var partial = validator.makePartial(); // Create the implementation of the store type now that we have the initial values prepared.
 
   return (0, _zustand["default"])(function (set, store) {

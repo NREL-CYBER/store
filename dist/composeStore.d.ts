@@ -5,5 +5,5 @@ import { Store } from "./store";
  * @param schema JSON Schema7 object for validating incoming data
  * @param defininition name of the collection (singular) should match json schema (if unspecified, entire schema is considered a definition)
  */
-declare const composeStore: <DataType>(schema: RootSchemaObject, definition?: string | undefined) => import("zustand").UseStore<Store<DataType>>;
+declare const composeStore: <DataType>(schema: RootSchemaObject, definition?: string | undefined, initialState?: {} | undefined) => import("zustand").UseStore<Store<DataType>>;
 export { composeStore };

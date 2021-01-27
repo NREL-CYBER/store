@@ -1,8 +1,9 @@
 import { RootSchemaObject } from "validator";
 import { Store } from "./store";
 /**
- * Create an indexed storage & validation for vanillar TS
+ * Create an indexed storage & validation for vanilla TS
  * @param schema JSON Schema7 object for validating incoming data
  * @param defininition name of the collection (singular) should match json schema (if unspecified, entire schema is considered a definition)
  */
-export default function composeStore<DataType>(schema: RootSchemaObject, definition?: string): import("zustand/vanilla").StoreApi<Store<DataType>>;
+declare const composeVanillaStore: <DataType>(schema: RootSchemaObject, definition?: string | undefined, initialState?: {} | undefined) => import("zustand/vanilla").StoreApi<Store<DataType>>;
+export { composeVanillaStore };

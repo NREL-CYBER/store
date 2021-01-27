@@ -1,5 +1,5 @@
 import groceriesSchema from "./schemas/groceries-schema.json"
-import composeVanillaStore from "../src/composeVanillaStore"
+import { composeVanillaStore } from "../src/composeVanillaStore"
 type Fruit = string;
 interface Veggie {
     veggieName: string
@@ -31,6 +31,12 @@ test("After insterting a valid brocoli, it is found in the veggie store", () => 
 test("Partial Grocery list comes with empty veggie array", () => {
     const veggieStoreAPI = composeVanillaStore<Groceries>(groceriesSchema);
     expect(veggieStoreAPI.getState().partial.fruits.length).toEqual(0);
+})
+
+
+test("Brocolli set as initial value is able to be retrieved after init", () => {
+    const veggieStoreAPI = composeVanillaStore<Veggie>(groceriesSchema, "veggie", { ["obama"]: brocolli });
+    expect(veggieStoreAPI.getState().retrieve("obama").veggieName === "baracoli obama");
 })
 
 

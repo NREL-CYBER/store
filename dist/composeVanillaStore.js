@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports["default"] = composeStore;
+exports.composeVanillaStore = void 0;
 
 var _validator = _interopRequireDefault(require("validator"));
 
@@ -33,29 +33,39 @@ function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { va
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-// We should use dependency injection to inject the create function from zustand 
-// that way we stay DRY, for now this violates dry only because Vanilla version is just used for testing.
-
 /**
- * Create an indexed storage & validation for vanillar TS
+ * Create an indexed storage & validation for vanilla TS
  * @param schema JSON Schema7 object for validating incoming data
  * @param defininition name of the collection (singular) should match json schema (if unspecified, entire schema is considered a definition)
  */
-function composeStore(schema, definition) {
+var composeVanillaStore = function composeVanillaStore(schema, definition, initialState) {
   var collection = definition ? definition : schema.$id ? schema.$id : "errorCollection";
 
   if (collection === "errorCollection") {
-    throw "invalid JSON schema";
+    throw new Error("invalid JSON schema");
   }
-  console.log(definition)
+
   var validator = typeof definition === "string" ? new _validator["default"](schema, definition) : new _validator["default"](schema);
   var errors = [];
   /*
    * validate the initial state and show errors and filter invalid and process data.
    */
 
-  var records = {};
-  var index = [];
+  var records = initialState ? initialState : {};
+  var index = initialState ? Object.keys(initialState) : [];
+
+  if (initialState) {
+    var allValid = Object.values(records).map(function (item) {
+      return validator.validate(item);
+    }).reduce(function (x, y) {
+      return x && y;
+    });
+
+    if (!allValid) {
+      throw new Error("Invalid initial Value");
+    }
+  }
+
   var partial = validator.makePartial(); // Create the implementation of the store type now that we have the initial values prepared.
 
   return (0, _vanilla["default"])(function (set, store) {
@@ -133,15 +143,6 @@ function composeStore(schema, definition) {
           status: "idle"
         });
       },
-
-      /**
-       *  add an Item to the store using decomposition.
-       *  const {add,errors} = useStore()
-       *  onSubmit => insert(item);
-       * 
-       *  validation errors apear in errors array
-       *  errors && errors.map(error=>error.message)
-       */
       insert: function insert(dataToAdd, optionalItemIndex) {
         var itemIndex = optionalItemIndex ? optionalItemIndex : (0, _uuid.v4)();
         set({
@@ -202,7 +203,7 @@ function composeStore(schema, definition) {
       */
       setPartial: function setPartial(partialUpdate) {
         var newPartial = (0, _immer["default"])(store().partial, partialUpdate, function (events) {
-          events.map(function (e) {
+          events.forEach(function (e) {
             return console.log(e.op + " " + e.path + " " + JSON.stringify(e.value));
           });
         });
@@ -264,7 +265,7 @@ function composeStore(schema, definition) {
        */
       activeInstance: function activeInstance() {
         var _store = store(),
-          active = _store.active;
+            active = _store.active;
 
         return active ? store().retrieve(active) : undefined;
       },
@@ -281,4 +282,6 @@ function composeStore(schema, definition) {
       }
     };
   });
-}
+};
+
+exports.composeVanillaStore = composeVanillaStore;

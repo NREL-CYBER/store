@@ -1,6 +1,6 @@
 import oscal_ssp_schema from "./schemas/oscal_ssp_schema.json"
 import oscal_ssp_example from "./data/example_ssp.json"
-import composeVanillaStore from "../dist/composeVanillaStore"
+import { composeVanillaStore } from "../dist/composeVanillaStore"
 import { importOscal } from "oscal"
 
 test("can load an oscal json schema", () => {
