@@ -5,29 +5,34 @@ import { Store, StoreListener } from "./store";
 import produce from "immer";
 import create from "zustand/vanilla";
 
-// We should use dependency injection to inject the create function from zustand 
-// that way we stay DRY, for now this violates dry only because Vanilla version is just used for testing.
-
-
 /**
- * Create an indexed storage & validation for vanillar TS
+ * Create an indexed storage & validation for vanilla TS
  * @param schema JSON Schema7 object for validating incoming data
  * @param defininition name of the collection (singular) should match json schema (if unspecified, entire schema is considered a definition)
  */
-export default function composeStore<DataType>(schema: RootSchemaObject, definition?: string) {
+
+const composeVanillaStore = <DataType>(schema: RootSchemaObject, definition?: string, initialState?: {}) => {
     let collection = definition ? definition : schema.$id ? schema.$id : "errorCollection"
     if (collection === "errorCollection") {
-        throw ("invalid JSON schema");
+        throw new Error("invalid JSON schema");
     }
-
     const validator = typeof definition === "string" ? new Validator<DataType>(schema, definition) : new Validator<DataType>(schema);
 
     let errors: ErrorObject<string, Record<string, any>>[] = [];
     /*
      * validate the initial state and show errors and filter invalid and process data.
      */
-    let records: Record<string, DataType> = {};
-    const index: string[] = [];
+    let records: Record<string, DataType> = initialState ? initialState : {};
+    const index: string[] = initialState ? Object.keys(initialState) : [];
+
+    if (initialState) {
+        const allValid = Object.values(records)
+            .map(item => validator.validate(item))
+            .reduce((x, y) => x && y)
+        if (!allValid) {
+            throw new Error("Invalid initial Value");
+        }
+    }
 
     const partial = validator.makePartial() as DataType;
     // Create the implementation of the store type now that we have the initial values prepared.
@@ -80,14 +85,6 @@ export default function composeStore<DataType>(schema: RootSchemaObject, definit
             store().listeners.forEach(callback => callback(idToRemove, oldRecord, "removing"))
             set({ index, records, active, status: "idle" });
         },
-        /**
-         *  add an Item to the store using decomposition.
-         *  const {add,errors} = useStore()
-         *  onSubmit => insert(item);
-         * 
-         *  validation errors apear in errors array
-         *  errors && errors.map(error=>error.message)
-         */
         insert: (dataToAdd, optionalItemIndex) => {
             const itemIndex = optionalItemIndex ? optionalItemIndex : v4();
             set({ status: "inserting" });
@@ -129,7 +126,7 @@ export default function composeStore<DataType>(schema: RootSchemaObject, definit
         */
         setPartial: (partialUpdate) => {
             const newPartial = produce<DataType>(store().partial, partialUpdate, (events) => {
-                events.map((e) => console.log(e.op + " " + e.path + " " + JSON.stringify(e.value)));
+                events.forEach((e) => console.log(e.op + " " + e.path + " " + JSON.stringify(e.value)));
             });
             set({ partial: newPartial });
             store().listeners.forEach(callback => callback("partial", newPartial, "partial-update"))
@@ -195,3 +192,4 @@ export default function composeStore<DataType>(schema: RootSchemaObject, definit
     }))
 }
 
+export { composeVanillaStore };

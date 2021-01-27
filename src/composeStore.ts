@@ -11,7 +11,7 @@ import { Store, StoreListener } from "./store";
  * @param defininition name of the collection (singular) should match json schema (if unspecified, entire schema is considered a definition)
  */
 
-const composeStore = <DataType>(schema: RootSchemaObject, definition?: string,) => {
+const composeStore = <DataType>(schema: RootSchemaObject, definition?: string, initialState?: {}) => {
     let collection = definition ? definition : schema.$id ? schema.$id : "errorCollection"
     if (collection === "errorCollection") {
         throw new Error("invalid JSON schema");
@@ -22,8 +22,17 @@ const composeStore = <DataType>(schema: RootSchemaObject, definition?: string,) 
     /*
      * validate the initial state and show errors and filter invalid and process data.
      */
-    let records: Record<string, DataType> = {};
-    const index: string[] = [];
+    let records: Record<string, DataType> = initialState ? initialState : {};
+    const index: string[] = initialState ? Object.keys(initialState) : [];
+
+    if (initialState) {
+        const allValid = Object.values(records)
+            .map(item => validator.validate(item))
+            .reduce((x, y) => x && y)
+        if (!allValid) {
+            throw new Error("Invalid initial Value");
+        }
+    }
 
     const partial = validator.makePartial() as DataType;
     // Create the implementation of the store type now that we have the initial values prepared.
