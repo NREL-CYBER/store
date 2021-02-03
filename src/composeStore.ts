@@ -9,9 +9,18 @@ import { Store, StoreListener } from "./store";
  * Create an indexed storage & validation for vanilla TS
  * @param schema JSON Schema7 object for validating incoming data
  * @param defininition name of the collection (singular) should match json schema (if unspecified, entire schema is considered a definition)
+ * @param initial The initial value of the store
  */
 
-const composeStore = <DataType>(schema: RootSchemaObject, definition?: string, initialState?: {}) => {
+interface composeStoreProps {
+    schema: RootSchemaObject,
+    initial?: {},
+    definition?: string
+}
+
+
+const composeStore = <DataType>(options: composeStoreProps) => {
+    const { schema, definition, initial } = options;
     let collection = definition ? definition : schema.$id ? schema.$id : "errorCollection"
     if (collection === "errorCollection") {
         throw new Error("invalid JSON schema");
@@ -22,10 +31,10 @@ const composeStore = <DataType>(schema: RootSchemaObject, definition?: string, i
     /*
      * validate the initial state and show errors and filter invalid and process data.
      */
-    let records: Record<string, DataType> = initialState ? initialState : {};
-    const index: string[] = initialState ? Object.keys(initialState) : [];
+    let records: Record<string, DataType> = initial ? initial : {};
+    const index: string[] = initial ? Object.keys(initial) : [];
 
-    if (initialState) {
+    if (initial) {
         const allValid = Object.values(records)
             .map(item => validator.validate(item))
             .reduce((x, y) => x && y)

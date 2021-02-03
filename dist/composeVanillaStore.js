@@ -5,11 +5,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.composeVanillaStore = void 0;
 
-var _validator = _interopRequireDefault(require("validator"));
+var _immer = _interopRequireDefault(require("immer"));
 
 var _uuid = require("uuid");
 
-var _immer = _interopRequireDefault(require("immer"));
+var _validator = _interopRequireDefault(require("validator"));
 
 var _vanilla = _interopRequireDefault(require("zustand/vanilla"));
 
@@ -33,12 +33,10 @@ function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { va
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-/**
- * Create an indexed storage & validation for vanilla TS
- * @param schema JSON Schema7 object for validating incoming data
- * @param defininition name of the collection (singular) should match json schema (if unspecified, entire schema is considered a definition)
- */
-var composeVanillaStore = function composeVanillaStore(schema, definition, initialState) {
+var composeVanillaStore = function composeVanillaStore(options) {
+  var schema = options.schema,
+      definition = options.definition,
+      initial = options.initial;
   var collection = definition ? definition : schema.$id ? schema.$id : "errorCollection";
 
   if (collection === "errorCollection") {
@@ -51,10 +49,10 @@ var composeVanillaStore = function composeVanillaStore(schema, definition, initi
    * validate the initial state and show errors and filter invalid and process data.
    */
 
-  var records = initialState ? initialState : {};
-  var index = initialState ? Object.keys(initialState) : [];
+  var records = initial ? initial : {};
+  var index = initial ? Object.keys(initial) : [];
 
-  if (initialState) {
+  if (initial) {
     var allValid = Object.values(records).map(function (item) {
       return validator.validate(item);
     }).reduce(function (x, y) {

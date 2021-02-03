@@ -5,7 +5,10 @@ import { importOscal } from "oscal"
 
 test("can load an oscal json schema", () => {
 
-    const sspStoreApi = composeVanillaStore<any>(oscal_ssp_schema, "system_security_plan");
+    const sspStoreApi = composeVanillaStore<any>({
+        schema: oscal_ssp_schema,
+        definition: "system_security_plan"
+    });
     const importedOscal = importOscal(oscal_ssp_example["system-security-plan"]);
 
     sspStoreApi.getState().insert(importedOscal);
@@ -14,7 +17,11 @@ test("can load an oscal json schema", () => {
 })
 test("when given a definition it is not considered a root schema", () => {
 
-    const sspStoreApi = composeVanillaStore<any>(oscal_ssp_schema, "system_security_plan");
+    const sspStoreApi = composeVanillaStore<any>(
+        {
+            schema: oscal_ssp_schema,
+            definition: "system_security_plan"
+        });
     const importedOscal = importOscal(oscal_ssp_example["system-security-plan"]);
     expect(sspStoreApi.getState().validator.isRootSchema).toBeFalsy()
 })
