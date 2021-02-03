@@ -39,6 +39,12 @@ const composeStore = <DataType>(options: composeStoreProps) => {
             .map(item => validator.validate(item))
             .reduce((x, y) => x && y)
         if (!allValid) {
+            Object.values(records).forEach(x => {
+                const v = validator.validate(x);
+                if (!v) {
+                    console.log(validator.validate.errors);
+                }
+            })
             throw new Error("Invalid initial Value");
         }
     }

@@ -60,6 +60,13 @@ var composeStore = function composeStore(options) {
     });
 
     if (!allValid) {
+      Object.values(records).forEach(function (x) {
+        var v = validator.validate(x);
+
+        if (!v) {
+          console.log(validator.validate.errors);
+        }
+      });
       throw new Error("Invalid initial Value");
     }
   }
