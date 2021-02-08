@@ -43,7 +43,7 @@ export declare type Store<dataType> = {
     remove: (id: string) => void;
     all: () => dataType[];
     setActive: (id: string) => void;
-    setPartial: (partialUpdate: (partial: Draft<dataType>) => void) => void;
+    setWorkspace: (partialUpdate: (partial: Draft<dataType>) => void) => void;
     filter: (predicate: ((e: dataType) => boolean)) => dataType[];
     find: (predicate: ((e: dataType) => boolean)) => dataType | undefined;
     findAndRemove: (predicate: ((e: dataType) => boolean)) => void;

@@ -199,7 +199,7 @@ var composeVanillaStore = function composeVanillaStore(options) {
       /**
       * Perform safe partial updates here using immer produce<Datatype>()
       */
-      setPartial: function setPartial(partialUpdate) {
+      setWorkspace: function setWorkspace(partialUpdate) {
         var newPartial = (0, _immer["default"])(store().partial, partialUpdate, function (events) {
           events.forEach(function (e) {
             return console.log(e.op + " " + e.path + " " + JSON.stringify(e.value));

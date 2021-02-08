@@ -139,7 +139,7 @@ const composeStore = <DataType>(options: composeStoreProps) => {
         /**
         * Perform safe partial updates here using immer produce<Datatype>()
         */
-        setPartial: (partialUpdate) => {
+        setWorkspace: (partialUpdate) => {
             const newPartial = produce<DataType>(store().partial, partialUpdate, (events) => {
                 events.forEach((e) => console.log(e.op + " " + e.path + " " + JSON.stringify(e.value)));
             });
