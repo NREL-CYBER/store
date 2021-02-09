@@ -1,4 +1,6 @@
-import { Store } from "./store"
 import { composeStore } from "./composeStore"
-import { composeVanillaStore } from "./composeVanillaStore"
-export { Store, composeStore }
+import { Store } from "./store"
+import { enablePatches } from 'immer';
+import { composeVanillaStore } from "./composeVanillaStore";
+enablePatches()
+export { Store, composeStore, composeVanillaStore }
