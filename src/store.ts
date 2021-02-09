@@ -3,7 +3,7 @@ import { ErrorObject } from "ajv";
 import Validator from "validator";
 import { Draft } from "immer";
 
-export type StoreStatus = "idle" | "inserting" | "removing" | "validating" | "invalid" | "partial-update";
+export type StoreStatus = "idle" | "inserting" | "removing" | "validating" | "invalid" | "workspace-update";
 export type StoreListener<DataType> = (itemIndex: string, item: Partial<DataType>, status: StoreStatus) => void;
 
 /**
@@ -28,10 +28,13 @@ export type Store<dataType> = {
      */
     records: Record<string, dataType>
     /**
-    * partially complete data
-    * This has not been validated yet, 
+    * workspace data is not validated.
+    * Idea is this is where you build data
+    * that will eventually be valid after some time
+    * then it will graduate and be inserted 
+    *  
     */
-    partial: dataType
+    workspace: dataType
     /**
      * Validation errors
      * validation occurs on load and add
@@ -53,7 +56,7 @@ export type Store<dataType> = {
     findIndex: (predicate: ((e: dataType) => boolean)) => string | undefined,
     addListener: (callback: StoreListener<dataType>) => void,
     export: () => string
-    exportPartial: () => string
+    exportWorkspace: () => string
 
 }
 

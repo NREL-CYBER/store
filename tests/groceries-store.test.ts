@@ -32,11 +32,11 @@ test("After insterting a valid brocoli, it is found in the veggie store", () => 
     expect(veggieStoreAPI.getState().find(x => x.veggieName == barocolli.veggieName)).toBeTruthy()
 })
 
-test("Partial Grocery list comes with empty veggie array", () => {
+test("Grocery Workspace comes with empty veggie array", () => {
     const veggieStoreAPI = composeVanillaStore<Groceries>({
         schema: groceriesSchema
     });
-    expect(veggieStoreAPI.getState().partial.fruits.length).toEqual(0);
+    expect(veggieStoreAPI.getState().workspace.fruits.length).toEqual(0);
 })
 
 

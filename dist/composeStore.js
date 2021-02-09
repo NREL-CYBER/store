@@ -71,11 +71,11 @@ var composeStore = function composeStore(options) {
     }
   }
 
-  var partial = validator.makePartial(); // Create the implementation of the store type now that we have the initial values prepared.
+  var workspace = validator.makeWorkspace(); // Create the implementation of the store type now that we have the initial values prepared.
 
   return (0, _zustand["default"])(function (set, store) {
     return {
-      partial: partial,
+      workspace: workspace,
 
       /* data type identifier index */
 
@@ -199,24 +199,21 @@ var composeStore = function composeStore(options) {
           active: active
         });
       },
-      getPartial: function getPartial() {
-        return _objectSpread({}, store().partial);
-      },
 
       /**
       * Perform safe partial updates here using immer produce<Datatype>()
       */
-      setWorkspace: function setWorkspace(partialUpdate) {
-        var newPartial = (0, _immer["default"])(store().partial, partialUpdate, function (events) {
+      setWorkspace: function setWorkspace(workspaceUpdate) {
+        var newWorkspace = (0, _immer["default"])(store().workspace, workspaceUpdate, function (events) {
           events.forEach(function (e) {
             return console.log(e.op + " " + e.path + " " + JSON.stringify(e.value));
           });
         });
         set({
-          partial: newPartial
+          workspace: newWorkspace
         });
         store().listeners.forEach(function (callback) {
-          return callback("partial", newPartial, "partial-update");
+          return callback("workspace", newWorkspace, "workspace-update");
         });
       },
 
@@ -282,8 +279,8 @@ var composeStore = function composeStore(options) {
       "export": function _export() {
         return JSON.stringify(_toConsumableArray(store().all()));
       },
-      exportPartial: function exportPartial() {
-        return JSON.stringify(store().partial);
+      exportWorkspace: function exportWorkspace() {
+        return JSON.stringify(store().workspace);
       }
     };
   });

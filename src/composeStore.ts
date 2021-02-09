@@ -49,10 +49,10 @@ const composeStore = <DataType>(options: composeStoreProps) => {
         }
     }
 
-    const partial = validator.makePartial() as DataType;
+    const workspace = validator.makeWorkspace() as DataType;
     // Create the implementation of the store type now that we have the initial values prepared.
     return create<Store<DataType>>((set, store) => ({
-        partial,
+        workspace,
         /* data type identifier index */
         /* Name of the collection */
         collection,
@@ -131,20 +131,15 @@ const composeStore = <DataType>(options: composeStoreProps) => {
         setActive: (active) => {
             set({ active });
         },
-        getPartial: () => {
-            return {
-                ...store().partial
-            };
-        },
         /**
         * Perform safe partial updates here using immer produce<Datatype>()
         */
-        setWorkspace: (partialUpdate) => {
-            const newPartial = produce<DataType>(store().partial, partialUpdate, (events) => {
+        setWorkspace: (workspaceUpdate) => {
+            const newWorkspace = produce<DataType>(store().workspace, workspaceUpdate, (events) => {
                 events.forEach((e) => console.log(e.op + " " + e.path + " " + JSON.stringify(e.value)));
             });
-            set({ partial: newPartial });
-            store().listeners.forEach(callback => callback("partial", newPartial, "partial-update"))
+            set({ workspace: newWorkspace });
+            store().listeners.forEach(callback => callback("workspace", newWorkspace, "workspace-update"))
         },
         /**
         * Listen for updates on the store
@@ -201,8 +196,8 @@ const composeStore = <DataType>(options: composeStoreProps) => {
             return JSON.stringify([...store().all()])
         },
 
-        exportPartial: () => {
-            return JSON.stringify(store().partial);
+        exportWorkspace: () => {
+            return JSON.stringify(store().workspace);
         }
     }))
 }
