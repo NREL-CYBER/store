@@ -26,8 +26,4 @@ var _composeStore = require("./composeStore");
 
 var _store = require("./store");
 
-var _immer = require("immer");
-
 var _composeVanillaStore = require("./composeVanillaStore");
-
-(0, _immer.enablePatches)();

@@ -135,9 +135,7 @@ const composeStore = <DataType>(options: composeStoreProps) => {
         * Perform safe partial updates here using immer produce<Datatype>()
         */
         setWorkspace: (workspaceUpdate) => {
-            const newWorkspace = produce<DataType>(store().workspace, workspaceUpdate, (events) => {
-                events.forEach((e) => console.log(e.op + " " + e.path + " " + JSON.stringify(e.value)));
-            });
+            const newWorkspace = produce<DataType>(store().workspace, workspaceUpdate);
             set({ workspace: newWorkspace });
             store().listeners.forEach(callback => callback("workspace", newWorkspace, "workspace-update"))
         },

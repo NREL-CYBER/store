@@ -204,11 +204,7 @@ var composeStore = function composeStore(options) {
       * Perform safe partial updates here using immer produce<Datatype>()
       */
       setWorkspace: function setWorkspace(workspaceUpdate) {
-        var newWorkspace = (0, _immer["default"])(store().workspace, workspaceUpdate, function (events) {
-          events.forEach(function (e) {
-            return console.log(e.op + " " + e.path + " " + JSON.stringify(e.value));
-          });
-        });
+        var newWorkspace = (0, _immer["default"])(store().workspace, workspaceUpdate);
         set({
           workspace: newWorkspace
         });
