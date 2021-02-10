@@ -37,13 +37,14 @@ var composeStore = function composeStore(options) {
   var schema = options.schema,
       definition = options.definition,
       initial = options.initial;
+  var injectedValidator = options.validator;
   var collection = definition ? definition : schema.$id ? schema.$id : "errorCollection";
 
   if (collection === "errorCollection") {
     throw new Error("invalid JSON schema");
   }
 
-  var validator = typeof definition === "string" ? new _validator["default"](schema, definition) : new _validator["default"](schema);
+  var validator = typeof injectedValidator !== "undefined" ? injectedValidator : typeof definition === "string" ? new _validator["default"](schema, definition) : new _validator["default"](schema);
   var errors = [];
   /*
    * validate the initial state and show errors and filter invalid and process data.

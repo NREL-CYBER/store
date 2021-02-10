@@ -1,4 +1,4 @@
-import { RootSchemaObject } from "validator";
+import Validator, { RootSchemaObject } from "validator";
 import { Store } from "./store";
 /**
  * Create an indexed storage & validation for vanilla TS
@@ -6,10 +6,11 @@ import { Store } from "./store";
  * @param defininition name of the collection (singular) should match json schema (if unspecified, entire schema is considered a definition)
  * @param initial The initial value of the store
  */
-interface composeStoreProps {
+interface composeStoreProps<DataType> {
     schema: RootSchemaObject;
     initial?: {};
     definition?: string;
+    validator?: Validator<DataType>;
 }
-declare const composeStore: <DataType>(options: composeStoreProps) => import("zustand").UseStore<Store<DataType>>;
+declare const composeStore: <DataType>(options: composeStoreProps<DataType>) => import("zustand").UseStore<Store<DataType>>;
 export { composeStore };

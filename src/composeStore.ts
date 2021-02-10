@@ -12,20 +12,25 @@ import { Store, StoreListener } from "./store";
  * @param initial The initial value of the store
  */
 
-interface composeStoreProps {
+interface composeStoreProps<DataType> {
     schema: RootSchemaObject,
     initial?: {},
     definition?: string
+    validator?: Validator<DataType>
 }
 
 
-const composeStore = <DataType>(options: composeStoreProps) => {
+const composeStore = <DataType>(options: composeStoreProps<DataType>) => {
     const { schema, definition, initial } = options;
+    const injectedValidator = options.validator;
     let collection = definition ? definition : schema.$id ? schema.$id : "errorCollection"
     if (collection === "errorCollection") {
         throw new Error("invalid JSON schema");
     }
-    const validator = typeof definition === "string" ? new Validator<DataType>(schema, definition) : new Validator<DataType>(schema);
+    const validator = typeof injectedValidator !== "undefined" ? injectedValidator :
+        typeof definition === "string" ?
+            new Validator<DataType>(schema, definition) :
+            new Validator<DataType>(schema);
 
     let errors: ErrorObject<string, Record<string, any>>[] = [];
     /*
