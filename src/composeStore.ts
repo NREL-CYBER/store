@@ -196,7 +196,7 @@ const composeStore = <DataType>(options: composeStoreProps<DataType>) => {
          * Exported loses information about the "active item"
          */
         export: () => {
-            return JSON.stringify([...store().all()])
+            return JSON.stringify(records)
         },
 
         exportWorkspace: () => {
