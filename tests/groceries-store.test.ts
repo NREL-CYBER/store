@@ -50,5 +50,17 @@ test("Brocolli set as initial value is able to be retrieved after init", () => {
 
     expect(veggieStoreAPI.getState().retrieve("obama").veggieName === "baracoli obama");
 })
+test("Brocolli set as exported  as a key value pair on export", () => {
+    const veggieStoreAPI = composeVanillaStore<Veggie>(
+        {
+            schema: groceriesSchema,
+            definition: "veggie",
+            initial: { ["obama"]: barocolli }
+        });
+    const import_export_Record = JSON.parse(veggieStoreAPI.getState().export()) as Record<string, Veggie>;
+
+    expect(import_export_Record["obama"].veggieName === "baracoli obama");
+})
+
 
 

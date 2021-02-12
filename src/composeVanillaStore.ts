@@ -193,7 +193,7 @@ const composeVanillaStore = <DataType>(options: composeStoreProps) => {
          * Exported loses information about the "active item"
          */
         export: () => {
-            return JSON.stringify([...store().all()])
+            return JSON.stringify(store().records)
         },
 
         exportWorkspace: () => {
