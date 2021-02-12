@@ -277,7 +277,7 @@ var composeVanillaStore = function composeVanillaStore(options) {
        * Exported loses information about the "active item"
        */
       "export": function _export() {
-        return JSON.stringify(_toConsumableArray(store().all()));
+        return JSON.stringify(store().records);
       },
       exportWorkspace: function exportWorkspace() {
         return JSON.stringify(store().workspace);

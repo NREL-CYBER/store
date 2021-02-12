@@ -274,7 +274,7 @@ var composeStore = function composeStore(options) {
        * Exported loses information about the "active item"
        */
       "export": function _export() {
-        return JSON.stringify(records);
+        return JSON.stringify(store().records);
       },
       exportWorkspace: function exportWorkspace() {
         return JSON.stringify(store().workspace);
