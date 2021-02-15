@@ -85,13 +85,19 @@ const composeStore = <DataType>(options: composeStoreProps<DataType>) => {
         * filter entries via a predicate
         */
         filter: (predicate: ((e: DataType) => boolean)) => store()
+            .filterIndex(predicate).map(
+                matchingItemIndex => store().retrieve(matchingItemIndex)
+            ),
+        /**
+        * filter index via a predicate
+        */
+        filterIndex: (predicate: ((e: DataType) => boolean)) => store()
             .index
             .filter(
                 itemIndex =>
                     predicate(store().retrieve(itemIndex))
-            ).map(
-                matchingItemIndex => store().retrieve(matchingItemIndex)
             ),
+
         /**
          * Remove an Item from the store by Id
          *  

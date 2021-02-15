@@ -115,10 +115,17 @@ var composeStore = function composeStore(options) {
       * filter entries via a predicate
       */
       filter: function filter(predicate) {
+        return store().filterIndex(predicate).map(function (matchingItemIndex) {
+          return store().retrieve(matchingItemIndex);
+        });
+      },
+
+      /**
+      * filter index via a predicate
+      */
+      filterIndex: function filterIndex(predicate) {
         return store().index.filter(function (itemIndex) {
           return predicate(store().retrieve(itemIndex));
-        }).map(function (matchingItemIndex) {
-          return store().retrieve(matchingItemIndex);
         });
       },
 

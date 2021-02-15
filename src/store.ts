@@ -51,9 +51,10 @@ export type Store<dataType> = {
     setActive: (id: string) => void,
     setWorkspace: (partialUpdate: (partial: Draft<dataType>) => void) => void,
     filter: (predicate: ((e: dataType) => boolean)) => dataType[],
+    filterIndex: (predicate: ((e: dataType) => boolean)) => string[],
     find: (predicate: ((e: dataType) => boolean)) => dataType | undefined,
-    findAndRemove: (predicate: ((e: dataType) => boolean)) => void,
     findIndex: (predicate: ((e: dataType) => boolean)) => string | undefined,
+    findAndRemove: (predicate: ((e: dataType) => boolean)) => void,
     addListener: (callback: StoreListener<dataType>) => void,
     import: (records: Record<string, dataType>) => boolean
     export: () => string
