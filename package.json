@@ -1,6 +1,6 @@
 {
   "name": "store",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Frontend Cache for JSON Schema validated Data",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
