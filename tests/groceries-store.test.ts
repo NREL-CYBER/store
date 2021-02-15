@@ -62,5 +62,18 @@ test("Brocolli set as exported  as a key value pair on export", () => {
     expect(import_export_Record["obama"].veggieName === "baracoli obama");
 })
 
+test("Exporting and importing a store validates", () => {
+    const veggieStoreAPI = composeVanillaStore<Veggie>(
+        {
+            schema: groceriesSchema,
+            definition: "veggie",
+            initial: { ["obama"]: barocolli }
+        });
+    const import_export_Record = JSON.parse(veggieStoreAPI.getState().export()) as Record<string, Veggie>;
+    veggieStoreAPI.getState().import({})
+    expect(import_export_Record["obama"].veggieName === "baracoli obama");
+})
+
+
 
 

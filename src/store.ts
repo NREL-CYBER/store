@@ -3,7 +3,7 @@ import { ErrorObject } from "ajv";
 import Validator from "validator";
 import { Draft } from "immer";
 
-export type StoreStatus = "idle" | "inserting" | "removing" | "validating" | "invalid" | "workspace-update";
+export type StoreStatus = "idle" | "inserting" | "removing" | "validating" | "invalid" | "workspace-update" | "clear";
 export type StoreListener<DataType> = (itemIndex: string, item: Partial<DataType>, status: StoreStatus) => void;
 
 /**
@@ -45,8 +45,8 @@ export type Store<dataType> = {
     listeners: StoreListener<dataType>[],
     activeInstance: () => dataType | undefined
     retrieve: (id: string) => (dataType)
-    insert: (dataItem: any, id?: string) => void,
-    remove: (id: string) => void,
+    insert: (dataItem: any, id?: string) => boolean,
+    remove: (id: string) => boolean,
     all: () => dataType[],
     setActive: (id: string) => void,
     setWorkspace: (partialUpdate: (partial: Draft<dataType>) => void) => void,
@@ -55,7 +55,9 @@ export type Store<dataType> = {
     findAndRemove: (predicate: ((e: dataType) => boolean)) => void,
     findIndex: (predicate: ((e: dataType) => boolean)) => string | undefined,
     addListener: (callback: StoreListener<dataType>) => void,
+    import: (records: Record<string, dataType>) => boolean
     export: () => string
+    clear: () => void
     exportWorkspace: () => string
 
 }

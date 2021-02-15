@@ -12,44 +12,55 @@ import { Store, StoreListener } from "./store";
  * @param initial The initial value of the store
  */
 
-interface composeStoreProps {
+interface composeStoreProps<DataType> {
     schema: RootSchemaObject,
     initial?: {},
     definition?: string
+    validator?: Validator<DataType>
 }
 
 
-const composeVanillaStore = <DataType>(options: composeStoreProps) => {
+const composeVanillaStore = <DataType>(options: composeStoreProps<DataType>) => {
     const { schema, definition, initial } = options;
-    let collection = definition ? definition : schema.$id ? schema.$id : "errorCollection"
+    const injectedValidator = options.validator;
+    const collection = definition ? definition : schema.$id ? schema.$id : "errorCollection"
     if (collection === "errorCollection") {
         throw new Error("invalid JSON schema");
     }
-    const validator = typeof definition === "string" ? new Validator<DataType>(schema, definition) : new Validator<DataType>(schema);
+    const validator = typeof injectedValidator !== "undefined" ? injectedValidator :
+        typeof definition === "string" ?
+            new Validator<DataType>(schema, definition) :
+            new Validator<DataType>(schema);
 
-    let errors: ErrorObject<string, Record<string, any>>[] = [];
     /*
      * validate the initial state and show errors and filter invalid and process data.
      */
-    let records: Record<string, DataType> = initial ? initial : {};
+    const records: Record<string, DataType> = initial ? initial : {};
     const index: string[] = initial ? Object.keys(initial) : [];
 
-    if (initial) {
-        const allValid = Object.values(records)
-            .map(item => validator.validate(item))
-            .reduce((x, y) => x && y)
-        if (!allValid) {
-            Object.values(records).forEach(x => {
-                const v = validator.validate(x);
-                if (!v) {
-                    console.log(validator.validate.errors);
-                }
-            })
-            throw new Error("Invalid initial Value");
-        }
-    }
 
     const workspace = validator.makeWorkspace() as DataType;
+    const validateRecords = (entries: Record<string, DataType>) => {
+        const data = Object.values(entries);
+        if (data.length === 0)
+            return true;
+        return data
+            .map(item => validator.validate(item))
+            .reduce((x, y) => x && y)
+    }
+
+    const findRecordErrors = (entries: Record<string, DataType>) => {
+        Object.values(entries).forEach(x => {
+            if (!validator.validate(x)) {
+                return validator.validate.errors;
+            }
+        })
+        return [];
+    }
+    const errors: ErrorObject<string, Record<string, any>>[] = !validateRecords(records) ? findRecordErrors(records) : [];
+
+
+
     // Create the implementation of the store type now that we have the initial values prepared.
     return create<Store<DataType>>((set, store) => ({
         workspace,
@@ -90,6 +101,9 @@ const composeVanillaStore = <DataType>(options: composeStoreProps) => {
         remove: (idToRemove) => {
             set({ status: "removing" });
             const index = store().index.filter(x => x !== idToRemove);
+            if (store().index.length === index.length) {
+                return false;
+            }
             const records = { ...store().records };
             const oldRecord = { ...records[idToRemove] }
             delete records[idToRemove];
@@ -99,6 +113,7 @@ const composeVanillaStore = <DataType>(options: composeStoreProps) => {
             }
             store().listeners.forEach(callback => callback(idToRemove, oldRecord, "removing"))
             set({ index, records, active, status: "idle" });
+            return true;
         },
         insert: (dataToAdd, optionalItemIndex) => {
             const itemIndex = optionalItemIndex ? optionalItemIndex : v4();
@@ -112,9 +127,11 @@ const composeVanillaStore = <DataType>(options: composeStoreProps) => {
                     index = [...index, itemIndex];
                 set({ index, records, status: "idle" });
                 store().listeners.forEach(callback => callback(itemIndex, { ...dataToAdd }, "inserting"))
+                return true;
             } else {
                 const errors = store().validator.validate.errors;
                 errors ? set({ errors, status: "invalid" }) : set({ status: "invalid" });
+                return false;
             }
         },
         /**
@@ -135,9 +152,7 @@ const composeVanillaStore = <DataType>(options: composeStoreProps) => {
         * Perform safe partial updates here using immer produce<Datatype>()
         */
         setWorkspace: (workspaceUpdate) => {
-            const newWorkspace = produce<DataType>(store().workspace, workspaceUpdate, (events) => {
-                events.forEach((e) => console.log(e.op + " " + e.path + " " + JSON.stringify(e.value)));
-            });
+            const newWorkspace = produce<DataType>(store().workspace, workspaceUpdate);
             set({ workspace: newWorkspace });
             store().listeners.forEach(callback => callback("workspace", newWorkspace, "workspace-update"))
         },
@@ -187,6 +202,20 @@ const composeVanillaStore = <DataType>(options: composeStoreProps) => {
         activeInstance: () => {
             const { active } = store();
             return active ? store().retrieve(active) : undefined;
+        },
+        import: (entries) => {
+            const errors: ErrorObject<string, Record<string, any>>[] = findRecordErrors(records) ;
+            set({ errors, records: entries, index: Object.keys(entries) });
+            if (errors.length == 0) {
+                Object.entries(entries).forEach(([itemIndex, importItem]) => {
+                    store().listeners.forEach(callback => callback(itemIndex, { ...importItem }, "inserting"))
+                })
+            }
+            return errors.length == 0;
+        }, clear: () => {
+            store().import({});
+            store().listeners.forEach(callback => callback("", {}, "clear"))
+
         },
         /**
          * Export all items including the partial.
