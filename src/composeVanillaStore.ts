@@ -118,7 +118,7 @@ const composeVanillaStore = <DataType>(options: composeStoreProps<DataType>) => 
                 return false;
             }
         }, update: (id, itemUpdate) => {
-            const newItem = produce<DataType>(store().workspace, itemUpdate);
+            const newItem = produce<DataType>(store().retrieve(id), itemUpdate);
             store().insert(newItem, id);
         },
 

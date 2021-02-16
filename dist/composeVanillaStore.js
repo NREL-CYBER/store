@@ -172,7 +172,7 @@ var composeVanillaStore = function composeVanillaStore(options) {
         }
       },
       update: function update(id, itemUpdate) {
-        var newItem = (0, _immer["default"])(store().workspace, itemUpdate);
+        var newItem = (0, _immer["default"])(store().retrieve(id), itemUpdate);
         store().insert(newItem, id);
       },
       retrieve: function retrieve(itemIndex) {
