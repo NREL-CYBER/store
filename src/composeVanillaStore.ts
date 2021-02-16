@@ -64,33 +64,17 @@ const composeVanillaStore = <DataType>(options: composeStoreProps<DataType>) => 
     // Create the implementation of the store type now that we have the initial values prepared.
     return create<Store<DataType>>((set, store) => ({
         workspace,
-        /* data type identifier index */
-        /* Name of the collection */
         collection,
-        /* index of all record ids */
         index,
-        /* storage map of all records */
         records,
-        /* validation errors */
         errors,
-        /* status of store activity */
         status: "idle",
-        /* validation object responsible for data integrity  */
         validator: validator,
-        /**
-        * Post Crud Listened Events
-        */
         listeners: [],
-        /**
-        * filter entries via a predicate
-        */
         filter: (predicate: ((e: DataType) => boolean)) => store()
             .filterIndex(predicate).map(
                 matchingItemIndex => store().retrieve(matchingItemIndex)
             ),
-        /**
-        * filter index via a predicate
-        */
         filterIndex: (predicate: ((e: DataType) => boolean)) => store()
             .index
             .filter(
@@ -98,12 +82,6 @@ const composeVanillaStore = <DataType>(options: composeStoreProps<DataType>) => 
                     predicate(store().retrieve(itemIndex))
             ),
 
-        /**
-         * Remove an Item from the store by Id
-         *  
-         * const {remove} = useStore()
-         * onDelete => remove(item)
-         */
         remove: (idToRemove) => {
             set({ status: "removing" });
             const index = store().index.filter(x => x !== idToRemove);
@@ -139,44 +117,28 @@ const composeVanillaStore = <DataType>(options: composeStoreProps<DataType>) => 
                 errors ? set({ errors, status: "invalid" }) : set({ status: "invalid" });
                 return false;
             }
+        }, update: (id, itemUpdate) => {
+            const newItem = produce<DataType>(store().workspace, itemUpdate);
+            store().insert(newItem, id);
         },
-        /**
-         * retrieve an Item to the store
-         * ie for atomic updates use:
-         * const item = useStore(x=>x.retreive(id))
-         */
+
         retrieve: (itemIndex) => {
             return store().records[itemIndex];
         },
-        /**
-        * highlight or select this instance for detail view
-        */
         setActive: (active) => {
             set({ active });
         },
-        /**
-        * Perform safe partial updates here using immer produce<Datatype>()
-        */
         setWorkspace: (workspaceUpdate) => {
             const newWorkspace = produce<DataType>(store().workspace, workspaceUpdate);
             set({ workspace: newWorkspace });
             store().listeners.forEach(callback => callback("workspace", newWorkspace, "workspace-update"))
         },
-        /**
-        * Listen for updates on the store
-        */
         addListener: (callback: StoreListener<DataType>) => {
             set({ listeners: [...store().listeners, callback] })
         },
-        /**
-        * Find a single data instance in the store
-        */
         find: (predicate) => {
             return store().filter(predicate).pop();
         },
-        /**
-        * Find and remove any matching instances
-        */
         findAndRemove: (predicate) => {
             store()
                 .index
@@ -187,24 +149,15 @@ const composeVanillaStore = <DataType>(options: composeStoreProps<DataType>) => 
                     store().remove(index);
                 });
         },
-        /**
-        * Find the index the data item matching a predicate
-        */
         findIndex: (predicate: ((e: DataType) => boolean)) => store()
             .index
             .find(
                 itemIndex =>
                     predicate(store().retrieve(itemIndex))
             ),
-        /**
-        * All records in an array
-        */
         all: () => {
             return store().filter(x => true);
         },
-        /**
-         * Retrieve the active instance if there is one
-         */
         activeInstance: () => {
             const { active } = store();
             return active ? store().retrieve(active) : undefined;
@@ -223,10 +176,6 @@ const composeVanillaStore = <DataType>(options: composeStoreProps<DataType>) => 
             store().listeners.forEach(callback => callback("", {}, "clear"))
 
         },
-        /**
-         * Export all items including the partial.
-         * Exported loses information about the "active item"
-         */
         export: () => {
             return JSON.stringify(store().records)
         },
@@ -236,5 +185,6 @@ const composeVanillaStore = <DataType>(options: composeStoreProps<DataType>) => 
         }
     }))
 }
+
 
 export { composeVanillaStore };

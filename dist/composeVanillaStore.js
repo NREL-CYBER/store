@@ -85,56 +85,23 @@ var composeVanillaStore = function composeVanillaStore(options) {
   return (0, _vanilla["default"])(function (set, store) {
     return {
       workspace: workspace,
-
-      /* data type identifier index */
-
-      /* Name of the collection */
       collection: collection,
-
-      /* index of all record ids */
       index: index,
-
-      /* storage map of all records */
       records: records,
-
-      /* validation errors */
       errors: errors,
-
-      /* status of store activity */
       status: "idle",
-
-      /* validation object responsible for data integrity  */
       validator: validator,
-
-      /**
-      * Post Crud Listened Events
-      */
       listeners: [],
-
-      /**
-      * filter entries via a predicate
-      */
       filter: function filter(predicate) {
         return store().filterIndex(predicate).map(function (matchingItemIndex) {
           return store().retrieve(matchingItemIndex);
         });
       },
-
-      /**
-      * filter index via a predicate
-      */
       filterIndex: function filterIndex(predicate) {
         return store().index.filter(function (itemIndex) {
           return predicate(store().retrieve(itemIndex));
         });
       },
-
-      /**
-       * Remove an Item from the store by Id
-       *  
-       * const {remove} = useStore()
-       * onDelete => remove(item)
-       */
       remove: function remove(idToRemove) {
         set({
           status: "removing"
@@ -204,28 +171,18 @@ var composeVanillaStore = function composeVanillaStore(options) {
           return false;
         }
       },
-
-      /**
-       * retrieve an Item to the store
-       * ie for atomic updates use:
-       * const item = useStore(x=>x.retreive(id))
-       */
+      update: function update(id, itemUpdate) {
+        var newItem = (0, _immer["default"])(store().workspace, itemUpdate);
+        store().insert(newItem, id);
+      },
       retrieve: function retrieve(itemIndex) {
         return store().records[itemIndex];
       },
-
-      /**
-      * highlight or select this instance for detail view
-      */
       setActive: function setActive(active) {
         set({
           active: active
         });
       },
-
-      /**
-      * Perform safe partial updates here using immer produce<Datatype>()
-      */
       setWorkspace: function setWorkspace(workspaceUpdate) {
         var newWorkspace = (0, _immer["default"])(store().workspace, workspaceUpdate);
         set({
@@ -235,26 +192,14 @@ var composeVanillaStore = function composeVanillaStore(options) {
           return callback("workspace", newWorkspace, "workspace-update");
         });
       },
-
-      /**
-      * Listen for updates on the store
-      */
       addListener: function addListener(callback) {
         set({
           listeners: [].concat(_toConsumableArray(store().listeners), [callback])
         });
       },
-
-      /**
-      * Find a single data instance in the store
-      */
       find: function find(predicate) {
         return store().filter(predicate).pop();
       },
-
-      /**
-      * Find and remove any matching instances
-      */
       findAndRemove: function findAndRemove(predicate) {
         store().index.filter(function (itemIndex) {
           return predicate(store().retrieve(itemIndex));
@@ -262,28 +207,16 @@ var composeVanillaStore = function composeVanillaStore(options) {
           store().remove(index);
         });
       },
-
-      /**
-      * Find the index the data item matching a predicate
-      */
       findIndex: function findIndex(predicate) {
         return store().index.find(function (itemIndex) {
           return predicate(store().retrieve(itemIndex));
         });
       },
-
-      /**
-      * All records in an array
-      */
       all: function all() {
         return store().filter(function (x) {
           return true;
         });
       },
-
-      /**
-       * Retrieve the active instance if there is one
-       */
       activeInstance: function activeInstance() {
         var _store = store(),
             active = _store.active;
@@ -318,11 +251,6 @@ var composeVanillaStore = function composeVanillaStore(options) {
           return callback("", {}, "clear");
         });
       },
-
-      /**
-       * Export all items including the partial.
-       * Exported loses information about the "active item"
-       */
       "export": function _export() {
         return JSON.stringify(store().records);
       },
