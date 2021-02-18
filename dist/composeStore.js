@@ -263,7 +263,7 @@ var composeStore = function composeStore(options) {
         return JSON.stringify(store().records);
       },
       exportWorkspace: function exportWorkspace() {
-        return JSON.stringify(store().workspace);
+        return JSON.stringify(store().workspace());
       }
     };
   });

@@ -184,7 +184,7 @@ const composeStore = <DataType>(options: composeStoreProps<DataType>) => {
         },
 
         exportWorkspace: () => {
-            return JSON.stringify(store().workspace);
+            return JSON.stringify(store().workspace());
         }
     }))
 }
