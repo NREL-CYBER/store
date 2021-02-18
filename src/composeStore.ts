@@ -22,16 +22,11 @@ interface composeStoreProps<DataType> {
 
 const composeStore = <DataType>(options: composeStoreProps<DataType>) => {
     const { schema, definition, initial } = options;
-    const injectedValidator = options.validator;
+    const validatorInstance = options.validator;
     const collection = definition ? definition : schema.$id ? schema.$id : "errorCollection"
     if (collection === "errorCollection") {
         throw new Error("invalid JSON schema");
     }
-    const validator = typeof injectedValidator !== "undefined" ? injectedValidator :
-        typeof definition === "string" ?
-            new Validator<DataType>(schema, definition) :
-            new Validator<DataType>(schema);
-
     /*
      * validate the initial state and show errors and filter invalid and process data.
      */
@@ -39,37 +34,36 @@ const composeStore = <DataType>(options: composeStoreProps<DataType>) => {
     const index: string[] = initial ? Object.keys(initial) : [];
 
 
-    const workspace = validator.makeWorkspace() as DataType;
-    const validateRecords = (entries: Record<string, DataType>) => {
-        const data = Object.values(entries);
-        if (data.length === 0)
-            return true;
-        return data
-            .map(item => validator.validate(item))
-            .reduce((x, y) => x && y)
-    }
-
-    const findRecordErrors = (entries: Record<string, DataType>) => {
-        Object.values(entries).forEach(x => {
-            if (!validator.validate(x)) {
-                return validator.validate.errors;
-            }
-        })
-        return [];
-    }
-    const errors: ErrorObject<string, Record<string, any>>[] = !validateRecords(records) ? findRecordErrors(records) : [];
-
 
 
     // Create the implementation of the store type now that we have the initial values prepared.
     return create<Store<DataType>>((set, store) => ({
-        workspace,
+        workspace: () => {
+            if (typeof store().workspaceInstance === "undefined") {
+                const workspaceInstance = store().validator().makeWorkspace();
+                set({ workspaceInstance });
+                return workspaceInstance;
+            } else {
+                return store().workspaceInstance!;
+            }
+        },
+        validatorInstance,
         collection,
         index,
         records,
-        errors,
-        status: "idle",
-        validator: validator,
+        errors: [],
+        status: "lazy",
+        validator: () => {
+            if (typeof store().validatorInstance !== "undefined") {
+                return store().validatorInstance!;
+            } else {
+                const validatorInstance = typeof definition === "string" ?
+                    new Validator<DataType>(schema, definition) :
+                    new Validator<DataType>(schema);
+                set({ validatorInstance })
+                return validatorInstance;
+            }
+        },
         listeners: [],
         filter: (predicate: ((e: DataType) => boolean)) => store()
             .filterIndex(predicate).map(
@@ -103,7 +97,7 @@ const composeStore = <DataType>(options: composeStoreProps<DataType>) => {
             const itemIndex = optionalItemIndex ? optionalItemIndex : v4();
             set({ status: "inserting" });
             let index = [...store().index];
-            const valid = store().validator.validate(dataToAdd);
+            const valid = store().validator().validate(dataToAdd);
             if (valid) {
                 let records = { ...store().records };
                 records[itemIndex] = dataToAdd;
@@ -113,13 +107,13 @@ const composeStore = <DataType>(options: composeStoreProps<DataType>) => {
                 store().listeners.forEach(callback => callback(itemIndex, { ...dataToAdd }, "inserting"))
                 return true;
             } else {
-                const errors = store().validator.validate.errors;
+                const errors = store().validator().validate.errors;
                 errors ? set({ errors, status: "invalid" }) : set({ status: "invalid" });
                 return false;
             }
         }, update: (id, itemUpdate) => {
             const newItem = produce<DataType>(store().retrieve(id), itemUpdate);
-            store().insert(newItem, id);
+            return store().insert(newItem, id);
         },
 
         retrieve: (itemIndex) => {
@@ -129,8 +123,8 @@ const composeStore = <DataType>(options: composeStoreProps<DataType>) => {
             set({ active });
         },
         setWorkspace: (workspaceUpdate) => {
-            const newWorkspace = produce<DataType>(store().workspace, workspaceUpdate);
-            set({ workspace: newWorkspace });
+            const newWorkspace = produce<DataType>(store().workspace(), workspaceUpdate);
+            set({ workspaceInstance: newWorkspace });
             store().listeners.forEach(callback => callback("workspace", newWorkspace, "workspace-update"))
         },
         addListener: (callback: StoreListener<DataType>) => {
@@ -163,7 +157,16 @@ const composeStore = <DataType>(options: composeStoreProps<DataType>) => {
             return active ? store().retrieve(active) : undefined;
         },
         import: (entries) => {
-            const errors: ErrorObject<string, Record<string, any>>[] = findRecordErrors(records);
+            const findRecordErrors = (entries: Record<string, DataType>) => {
+                Object.values(entries).forEach(x => {
+                    if (!store().validator().validate(x)) {
+                        return store().validator().validate.errors;
+                    }
+                })
+                return [];
+            }
+            const errors: ErrorObject<string, Record<string, any>>[] = findRecordErrors(records) || [];
+
             set({ errors, records: entries, index: Object.keys(entries) });
             if (errors.length == 0) {
                 Object.entries(entries).forEach(([itemIndex, importItem]) => {

@@ -36,7 +36,7 @@ test("Grocery Workspace comes with empty veggie array", () => {
     const veggieStoreAPI = composeVanillaStore<Groceries>({
         schema: groceriesSchema
     });
-    expect(veggieStoreAPI.getState().workspace.fruits.length).toEqual(0);
+    expect(veggieStoreAPI.getState().workspace().fruits.length).toEqual(0);
 })
 
 

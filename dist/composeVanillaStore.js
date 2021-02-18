@@ -45,52 +45,51 @@ var composeVanillaStore = function composeVanillaStore(options) {
   var schema = options.schema,
       definition = options.definition,
       initial = options.initial;
-  var injectedValidator = options.validator;
+  var validatorInstance = options.validator;
   var collection = definition ? definition : schema.$id ? schema.$id : "errorCollection";
 
   if (collection === "errorCollection") {
     throw new Error("invalid JSON schema");
   }
-
-  var validator = typeof injectedValidator !== "undefined" ? injectedValidator : typeof definition === "string" ? new _validator["default"](schema, definition) : new _validator["default"](schema);
   /*
    * validate the initial state and show errors and filter invalid and process data.
    */
 
+
   var records = initial ? initial : {};
-  var index = initial ? Object.keys(initial) : [];
-  var workspace = validator.makeWorkspace();
-
-  var validateRecords = function validateRecords(entries) {
-    var data = Object.values(entries);
-    if (data.length === 0) return true;
-    return data.map(function (item) {
-      return validator.validate(item);
-    }).reduce(function (x, y) {
-      return x && y;
-    });
-  };
-
-  var findRecordErrors = function findRecordErrors(entries) {
-    Object.values(entries).forEach(function (x) {
-      if (!validator.validate(x)) {
-        return validator.validate.errors;
-      }
-    });
-    return [];
-  };
-
-  var errors = !validateRecords(records) ? findRecordErrors(records) : []; // Create the implementation of the store type now that we have the initial values prepared.
+  var index = initial ? Object.keys(initial) : []; // Create the implementation of the store type now that we have the initial values prepared.
 
   return (0, _vanilla["default"])(function (set, store) {
     return {
-      workspace: workspace,
+      workspace: function workspace() {
+        if (typeof store().workspaceInstance === "undefined") {
+          var workspaceInstance = store().validator().makeWorkspace();
+          set({
+            workspaceInstance: workspaceInstance
+          });
+          return workspaceInstance;
+        } else {
+          return store().workspaceInstance;
+        }
+      },
+      validatorInstance: validatorInstance,
       collection: collection,
       index: index,
       records: records,
-      errors: errors,
-      status: "idle",
-      validator: validator,
+      errors: [],
+      status: "lazy",
+      validator: function validator() {
+        if (typeof store().validatorInstance !== "undefined") {
+          return store().validatorInstance;
+        } else {
+          var _validatorInstance = typeof definition === "string" ? new _validator["default"](schema, definition) : new _validator["default"](schema);
+
+          set({
+            validatorInstance: _validatorInstance
+          });
+          return _validatorInstance;
+        }
+      },
       listeners: [],
       filter: function filter(predicate) {
         return store().filterIndex(predicate).map(function (matchingItemIndex) {
@@ -144,7 +143,7 @@ var composeVanillaStore = function composeVanillaStore(options) {
 
         var index = _toConsumableArray(store().index);
 
-        var valid = store().validator.validate(dataToAdd);
+        var valid = store().validator().validate(dataToAdd);
 
         if (valid) {
           var _records = _objectSpread({}, store().records);
@@ -161,9 +160,9 @@ var composeVanillaStore = function composeVanillaStore(options) {
           });
           return true;
         } else {
-          var _errors = store().validator.validate.errors;
-          _errors ? set({
-            errors: _errors,
+          var errors = store().validator().validate.errors;
+          errors ? set({
+            errors: errors,
             status: "invalid"
           }) : set({
             status: "invalid"
@@ -173,7 +172,7 @@ var composeVanillaStore = function composeVanillaStore(options) {
       },
       update: function update(id, itemUpdate) {
         var newItem = (0, _immer["default"])(store().retrieve(id), itemUpdate);
-        store().insert(newItem, id);
+        return store().insert(newItem, id);
       },
       retrieve: function retrieve(itemIndex) {
         return store().records[itemIndex];
@@ -184,9 +183,9 @@ var composeVanillaStore = function composeVanillaStore(options) {
         });
       },
       setWorkspace: function setWorkspace(workspaceUpdate) {
-        var newWorkspace = (0, _immer["default"])(store().workspace, workspaceUpdate);
+        var newWorkspace = (0, _immer["default"])(store().workspace(), workspaceUpdate);
         set({
-          workspace: newWorkspace
+          workspaceInstance: newWorkspace
         });
         store().listeners.forEach(function (callback) {
           return callback("workspace", newWorkspace, "workspace-update");
@@ -224,7 +223,16 @@ var composeVanillaStore = function composeVanillaStore(options) {
         return active ? store().retrieve(active) : undefined;
       },
       "import": function _import(entries) {
-        var errors = findRecordErrors(records);
+        var findRecordErrors = function findRecordErrors(entries) {
+          Object.values(entries).forEach(function (x) {
+            if (!store().validator().validate(x)) {
+              return store().validator().validate.errors;
+            }
+          });
+          return [];
+        };
+
+        var errors = findRecordErrors(records) || [];
         set({
           errors: errors,
           records: entries,

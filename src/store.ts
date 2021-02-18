@@ -3,7 +3,7 @@ import { ErrorObject } from "ajv";
 import Validator from "validator";
 import { Draft } from "immer";
 
-export type StoreStatus = "idle" | "inserting" | "removing" | "validating" | "invalid" | "workspace-update" | "clear";
+export type StoreStatus = "lazy" | "idle" | "inserting" | "removing" | "validating" | "invalid" | "workspace-update" | "clear";
 export type StoreListener<DataType> = (itemIndex: string, item: Partial<DataType>, status: StoreStatus) => void;
 
 /**
@@ -28,21 +28,29 @@ export type Store<dataType> = {
      */
     records: Record<string, dataType>
     /**
+    *  Lazy instantiate workspace on request for performance
+    */
+    workspaceInstance?: dataType
+    /**
     * workspace data is not validated.
     * Idea is this is where you build data
     * that will eventually be valid after some time
     * then it will graduate and be inserted 
     *  
     */
-    workspace: dataType
+    workspace: () => dataType
+    /**
+    *  Lazy instantiate Validator on request app boot performance
+     */
+    validatorInstance?: Validator<dataType>,
     /**
     * Validator is triggered on insert and import
     */
-    validator: Validator<dataType>,
+    validator: () => Validator<dataType>,
     /**
-     * Validation errors
-     * validation occurs on load and add
-     */
+      * Validation errors
+      * validation occurs on load and add
+      */
     errors: ErrorObject[]
     /**
      * shares the status of a store ie inserting idle, removing etc...
@@ -69,7 +77,7 @@ export type Store<dataType> = {
     /**
      * Insert a data-item, optionally specify the identifier. uuid4 will be used by default
      */
-    update: (id: string, change: (item: Draft<dataType>) => void) => void,
+    update: (id: string, change: (item: Draft<dataType>) => void) => boolean,
     /**
      * Remove a single item in the store
      */
