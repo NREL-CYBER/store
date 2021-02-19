@@ -123,7 +123,7 @@ export declare type Store<dataType> = {
     /**
      * Import Records
      */
-    import: (records: Record<string, dataType>) => boolean;
+    import: (records: Record<string, dataType>, validate?: boolean) => boolean;
     /**
      * Export to serializable string
      */

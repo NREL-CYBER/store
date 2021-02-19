@@ -23,7 +23,7 @@ test("when given a definition it is not considered a root schema", () => {
             definition: "system_security_plan"
         });
     const importedOscal = importOscal(oscal_ssp_example["system-security-plan"]);
-    expect(sspStoreApi.getState().validator.isRootSchema).toBeFalsy()
+    expect(sspStoreApi.getState().validator().isRootSchema).toBeFalsy()
 })
 
 

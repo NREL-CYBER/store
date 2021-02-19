@@ -20,7 +20,7 @@ interface composeStoreProps<DataType> {
 }
 
 
-const composeVannillaStore = <DataType>(options: composeStoreProps<DataType>) => {
+const composeVanillaStore = <DataType>(options: composeStoreProps<DataType>) => {
     const { schema, definition, initial } = options;
     const validatorInstance = options.validator;
     const collection = definition ? definition : schema.$id ? schema.$id : "errorCollection"
@@ -192,4 +192,4 @@ const composeVannillaStore = <DataType>(options: composeStoreProps<DataType>) =>
 }
 
 
-export { composeVannillaStore };
+export { composeVanillaStore };

@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.composeVannillaStore = void 0;
+exports.composeVanillaStore = void 0;
 
 var _immer = _interopRequireDefault(require("immer"));
 
@@ -41,7 +41,7 @@ function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { va
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-var composeVannillaStore = function composeVannillaStore(options) {
+var composeVanillaStore = function composeVanillaStore(options) {
   var schema = options.schema,
       definition = options.definition,
       initial = options.initial;
@@ -274,4 +274,4 @@ var composeVannillaStore = function composeVannillaStore(options) {
   });
 };
 
-exports.composeVannillaStore = composeVannillaStore;
+exports.composeVanillaStore = composeVanillaStore;
