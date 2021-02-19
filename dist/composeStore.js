@@ -226,6 +226,8 @@ var composeStore = function composeStore(options) {
         return active ? store().retrieve(active) : undefined;
       },
       "import": function _import(entries) {
+        var shouldValidate = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+
         var findRecordErrors = function findRecordErrors(entries) {
           Object.values(entries).forEach(function (x) {
             if (!store().validator().validate(x)) {
@@ -235,7 +237,7 @@ var composeStore = function composeStore(options) {
           return [];
         };
 
-        var errors = findRecordErrors(records) || [];
+        var errors = shouldValidate ? findRecordErrors(records) : [];
         set({
           errors: errors,
           records: entries,

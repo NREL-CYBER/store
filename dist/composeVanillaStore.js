@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.composeVanillaStore = void 0;
+exports.composeVannillaStore = void 0;
 
 var _immer = _interopRequireDefault(require("immer"));
 
@@ -41,7 +41,7 @@ function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { va
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-var composeVanillaStore = function composeVanillaStore(options) {
+var composeVannillaStore = function composeVannillaStore(options) {
   var schema = options.schema,
       definition = options.definition,
       initial = options.initial;
@@ -226,6 +226,8 @@ var composeVanillaStore = function composeVanillaStore(options) {
         return active ? store().retrieve(active) : undefined;
       },
       "import": function _import(entries) {
+        var shouldValidate = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+
         var findRecordErrors = function findRecordErrors(entries) {
           Object.values(entries).forEach(function (x) {
             if (!store().validator().validate(x)) {
@@ -235,7 +237,7 @@ var composeVanillaStore = function composeVanillaStore(options) {
           return [];
         };
 
-        var errors = findRecordErrors(records) || [];
+        var errors = shouldValidate ? findRecordErrors(records) : [];
         set({
           errors: errors,
           records: entries,
@@ -272,4 +274,4 @@ var composeVanillaStore = function composeVanillaStore(options) {
   });
 };
 
-exports.composeVanillaStore = composeVanillaStore;
+exports.composeVannillaStore = composeVannillaStore;

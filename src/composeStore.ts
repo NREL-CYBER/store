@@ -159,7 +159,7 @@ const composeStore = <DataType>(options: composeStoreProps<DataType>) => {
             const { active } = store();
             return active ? store().retrieve(active) : undefined;
         },
-        import: (entries) => {
+        import: (entries, shouldValidate = true) => {
             const findRecordErrors = (entries: Record<string, DataType>) => {
                 Object.values(entries).forEach(x => {
                     if (!store().validator().validate(x)) {
@@ -168,8 +168,7 @@ const composeStore = <DataType>(options: composeStoreProps<DataType>) => {
                 })
                 return [];
             }
-            const errors: ErrorObject<string, Record<string, any>>[] = findRecordErrors(records) || [];
-
+            const errors: ErrorObject<string, Record<string, any>>[] = shouldValidate ? findRecordErrors(records) : [];
             set({ errors, records: entries, index: Object.keys(entries) });
             if (errors.length == 0) {
                 Object.entries(entries).forEach(([itemIndex, importItem]) => {
