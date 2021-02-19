@@ -1,3 +1,4 @@
+Frontend Store powered by json schemas and zustand
 # store
 
     npm install git://github.nrel.gov/CyberSecurity/store.git
@@ -5,7 +6,6 @@
 
 
 # tests
-    Frontend Store powered by json schemas and zustand
     PASS  tests/groceries-store.test.ts
     PASS  tests/oscal-store.test.ts (5.635 s)
 
