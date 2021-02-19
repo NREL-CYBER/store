@@ -124,8 +124,11 @@ const composeVanillaStore = <DataType>(options: composeStoreProps<DataType>) => 
         },
         setWorkspace: (workspaceUpdate) => {
             const newWorkspace = produce<DataType>(store().workspace(), workspaceUpdate);
-            set({ workspaceInstance: newWorkspace });
-            store().listeners.forEach(callback => callback("workspace", newWorkspace, "workspace-update"))
+            store().setWorkspaceInstance(newWorkspace);
+        },
+        setWorkspaceInstance: (workspaceInstance) => {
+            set({ workspaceInstance });
+            store().listeners.forEach(callback => callback("workspace", workspaceInstance, "workspace-update"))
         },
         addListener: (callback: StoreListener<DataType>) => {
             set({ listeners: [...store().listeners, callback] })
@@ -184,7 +187,7 @@ const composeVanillaStore = <DataType>(options: composeStoreProps<DataType>) => 
         },
 
         exportWorkspace: () => {
-            return JSON.stringify(store().workspace);
+            return JSON.stringify(store().workspace());
         }
     }))
 }

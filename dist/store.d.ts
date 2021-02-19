@@ -96,6 +96,10 @@ export declare type Store<dataType> = {
      */
     setWorkspace: (workspaceUpdate: (workspace: Draft<dataType>) => void) => void;
     /**
+     * set the workspace directly (from serialized workspace)
+     */
+    setWorkspaceInstance: (instance: dataType) => void;
+    /**
      * filter items by predicate
      */
     filter: (predicate: ((e: dataType) => boolean)) => dataType[];

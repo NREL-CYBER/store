@@ -184,11 +184,14 @@ var composeStore = function composeStore(options) {
       },
       setWorkspace: function setWorkspace(workspaceUpdate) {
         var newWorkspace = (0, _immer["default"])(store().workspace(), workspaceUpdate);
+        store().setWorkspaceInstance(newWorkspace);
+      },
+      setWorkspaceInstance: function setWorkspaceInstance(workspaceInstance) {
         set({
-          workspaceInstance: newWorkspace
+          workspaceInstance: workspaceInstance
         });
         store().listeners.forEach(function (callback) {
-          return callback("workspace", newWorkspace, "workspace-update");
+          return callback("workspace", workspaceInstance, "workspace-update");
         });
       },
       addListener: function addListener(callback) {
