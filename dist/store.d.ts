@@ -35,7 +35,7 @@ export declare type Store<dataType> = {
     * then it will graduate and be inserted
     *
     */
-    workspace: () => Promise<dataType>;
+    workspace: () => dataType;
     /**
     *  Lazy instantiate Validator on request app boot performance
      */
@@ -43,7 +43,7 @@ export declare type Store<dataType> = {
     /**
     * Validator is triggered on insert and import
     */
-    validator: () => Promise<Validator<dataType>>;
+    validator: () => Validator<dataType>;
     /**
       * Validation errors
       * validation occurs on load and add
@@ -70,11 +70,11 @@ export declare type Store<dataType> = {
     /**
      * Insert a data-item, optionally specify the identifier. uuid4 will be used by default
      */
-    insert: (dataItem: any, id?: string) => Promise<boolean>;
+    insert: (dataItem: any, id?: string) => boolean;
     /**
      * Insert a data-item, optionally specify the identifier. uuid4 will be used by default
      */
-    update: (id: string, change: (item: Draft<dataType>) => void) => Promise<boolean>;
+    update: (id: string, change: (item: Draft<dataType>) => void) => boolean;
     /**
      * Remove a single item in the store
      */
@@ -94,7 +94,7 @@ export declare type Store<dataType> = {
     /**
      * update the workspace with an immer function
      */
-    setWorkspace: (workspaceUpdate: (workspace: Draft<dataType>) => void) => Promise<void>;
+    setWorkspace: (workspaceUpdate: (workspace: Draft<dataType>) => void) => void;
     /**
      * set the workspace directly (from serialized workspace)
      */

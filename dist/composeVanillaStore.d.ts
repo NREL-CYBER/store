@@ -12,5 +12,5 @@ interface composeStoreProps<DataType> {
     definition?: string;
     validator?: Validator<DataType>;
 }
-declare const composeVanillaStore: <DataType>(options: composeStoreProps<DataType>) => import("zustand/vanilla").StoreApi<Store<DataType>>;
+declare const composeVanillaStore: <DataType>(options: composeStoreProps<DataType>) => import("zustand").UseStore<Store<DataType>>;
 export { composeVanillaStore };

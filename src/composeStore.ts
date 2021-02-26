@@ -38,14 +38,10 @@ const composeStore = <DataType>(options: composeStoreProps<DataType>) => {
 
     // Create the implementation of the store type now that we have the initial values prepared.
     return create<Store<DataType>>((set, store) => ({
-        workspace: async () => {
+        workspace: () => {
             if (typeof store().workspaceInstance === "undefined") {
-                const validator = await store().validator();
-                const workspaceInstance = validator.makeWorkspace()
-                setTimeout(() => {
-                    set({ workspaceInstance });
-                }, 100);
-
+                const workspaceInstance = store().validator().makeWorkspace();
+                setTimeout(() => set({ workspaceInstance }), 0);
                 return workspaceInstance;
             } else {
                 return store().workspaceInstance!;
@@ -57,16 +53,14 @@ const composeStore = <DataType>(options: composeStoreProps<DataType>) => {
         records,
         errors: [],
         status: "lazy",
-        validator: async () => {
+        validator: () => {
             if (typeof store().validatorInstance !== "undefined") {
                 return store().validatorInstance!;
             } else {
                 const validatorInstance = typeof definition === "string" ?
                     new Validator<DataType>(schema, definition) :
                     new Validator<DataType>(schema);
-                setTimeout(() => {
-                    set({ validatorInstance, status: "idle" });
-                }, 100);
+                setTimeout(() => set({ validatorInstance }), 0);
                 return validatorInstance;
             }
         },
@@ -99,11 +93,11 @@ const composeStore = <DataType>(options: composeStoreProps<DataType>) => {
             set({ index, records, active, status: "idle" });
             return true;
         },
-        insert: async (dataToAdd, optionalItemIndex) => {
+        insert: (dataToAdd, optionalItemIndex) => {
             const itemIndex = optionalItemIndex ? optionalItemIndex : v4();
             set({ status: "inserting" });
             let index = [...store().index];
-            const validator = await store().validator();
+            const validator = store().validator();
             const valid = validator.validate(dataToAdd);
             if (valid) {
                 let records = { ...store().records };
@@ -118,9 +112,9 @@ const composeStore = <DataType>(options: composeStoreProps<DataType>) => {
                 errors ? set({ errors, status: "invalid" }) : set({ status: "invalid" });
                 return false;
             }
-        }, update: async (id, itemUpdate) => {
+        }, update: (id, itemUpdate) => {
             const newItem = produce<DataType>(store().retrieve(id), itemUpdate);
-            return await store().insert(newItem, id);
+            return store().insert(newItem, id);
         },
 
         retrieve: (itemIndex) => {
@@ -129,9 +123,8 @@ const composeStore = <DataType>(options: composeStoreProps<DataType>) => {
         setActive: (active) => {
             set({ active });
         },
-        setWorkspace: async (workspaceUpdate) => {
-            const workspace = await store().workspace();
-            const newWorkspace = produce<DataType>(workspace, workspaceUpdate);
+        setWorkspace: (workspaceUpdate) => {
+            const newWorkspace = produce<DataType>(store().workspace(), workspaceUpdate);
             store().setWorkspaceInstance(newWorkspace);
         },
         setWorkspaceInstance: (workspaceInstance) => {
@@ -168,9 +161,9 @@ const composeStore = <DataType>(options: composeStoreProps<DataType>) => {
             return active ? store().retrieve(active) : undefined;
         },
         import: (entries, shouldValidate = true) => {
+            const validator = store().validator();
             const findRecordErrors = (entries: Record<string, DataType>) => {
-                Object.values(entries).forEach(async x => {
-                    const validator = await store().validator();
+                Object.values(entries).forEach(x => {
                     if (!validator.validate(x)) {
                         return validator.validate.errors;
                     }
