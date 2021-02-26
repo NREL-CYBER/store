@@ -22,21 +22,22 @@ const invalidGroceryList = {
     fruits: [tomato, { veggieLike: "yeee", veggieName: "Chocolate" }]
 }
 
-test("After insterting a valid brocoli, it is found in the veggie store", () => {
+test("After insterting a valid brocoli, it is found in the veggie store", async () => {
     const veggieStoreAPI = composeVanillaStore<Veggie>({
         schema: groceriesSchema,
         definition: "veggie"
     });
 
-    veggieStoreAPI.getState().insert(barocolli);
+    await veggieStoreAPI.getState().insert(barocolli);
     expect(veggieStoreAPI.getState().find(x => x.veggieName == barocolli.veggieName)).toBeTruthy()
 })
 
-test("Grocery Workspace comes with empty veggie array", () => {
+test("Grocery Workspace comes with empty veggie array", async () => {
     const veggieStoreAPI = composeVanillaStore<Groceries>({
         schema: groceriesSchema
     });
-    expect(veggieStoreAPI.getState().workspace().fruits.length).toEqual(0);
+    const workspace = await veggieStoreAPI.getState().workspace();
+    expect(workspace.fruits.length).toEqual(0);
 })
 
 

@@ -38,9 +38,10 @@ const composeVanillaStore = <DataType>(options: composeStoreProps<DataType>) => 
 
     // Create the implementation of the store type now that we have the initial values prepared.
     return create<Store<DataType>>((set, store) => ({
-        workspace: () => {
+        workspace: async () => {
             if (typeof store().workspaceInstance === "undefined") {
-                const workspaceInstance = store().validator().makeWorkspace();
+                const validator = await store().validator();
+                const workspaceInstance = validator.makeWorkspace()
                 setTimeout(() => {
                     set({ workspaceInstance });
                 }, 100);
@@ -56,8 +57,7 @@ const composeVanillaStore = <DataType>(options: composeStoreProps<DataType>) => 
         records,
         errors: [],
         status: "lazy",
-        validator: () => {
-
+        validator: async () => {
             if (typeof store().validatorInstance !== "undefined") {
                 return store().validatorInstance!;
             } else {
@@ -68,8 +68,6 @@ const composeVanillaStore = <DataType>(options: composeStoreProps<DataType>) => 
                     set({ validatorInstance, status: "idle" });
                 }, 100);
                 return validatorInstance;
-
-
             }
         },
         listeners: [],
@@ -101,11 +99,12 @@ const composeVanillaStore = <DataType>(options: composeStoreProps<DataType>) => 
             set({ index, records, active, status: "idle" });
             return true;
         },
-        insert: (dataToAdd, optionalItemIndex) => {
+        insert: async (dataToAdd, optionalItemIndex) => {
             const itemIndex = optionalItemIndex ? optionalItemIndex : v4();
             set({ status: "inserting" });
             let index = [...store().index];
-            const valid = store().validator().validate(dataToAdd);
+            const validator = await store().validator();
+            const valid = validator.validate(dataToAdd);
             if (valid) {
                 let records = { ...store().records };
                 records[itemIndex] = dataToAdd;
@@ -115,13 +114,13 @@ const composeVanillaStore = <DataType>(options: composeStoreProps<DataType>) => 
                 store().listeners.forEach(callback => callback(itemIndex, { ...dataToAdd }, "inserting"))
                 return true;
             } else {
-                const errors = store().validator().validate.errors;
+                const errors = validator.validate.errors;
                 errors ? set({ errors, status: "invalid" }) : set({ status: "invalid" });
                 return false;
             }
-        }, update: (id, itemUpdate) => {
+        }, update: async (id, itemUpdate) => {
             const newItem = produce<DataType>(store().retrieve(id), itemUpdate);
-            return store().insert(newItem, id);
+            return await store().insert(newItem, id);
         },
 
         retrieve: (itemIndex) => {
@@ -130,8 +129,9 @@ const composeVanillaStore = <DataType>(options: composeStoreProps<DataType>) => 
         setActive: (active) => {
             set({ active });
         },
-        setWorkspace: (workspaceUpdate) => {
-            const newWorkspace = produce<DataType>(store().workspace(), workspaceUpdate);
+        setWorkspace: async (workspaceUpdate) => {
+            const workspace = await store().workspace();
+            const newWorkspace = produce<DataType>(workspace, workspaceUpdate);
             store().setWorkspaceInstance(newWorkspace);
         },
         setWorkspaceInstance: (workspaceInstance) => {
@@ -169,9 +169,10 @@ const composeVanillaStore = <DataType>(options: composeStoreProps<DataType>) => 
         },
         import: (entries, shouldValidate = true) => {
             const findRecordErrors = (entries: Record<string, DataType>) => {
-                Object.values(entries).forEach(x => {
-                    if (!store().validator().validate(x)) {
-                        return store().validator().validate.errors;
+                Object.values(entries).forEach(async x => {
+                    const validator = await store().validator();
+                    if (!validator.validate(x)) {
+                        return validator.validate.errors;
                     }
                 })
                 return [];
