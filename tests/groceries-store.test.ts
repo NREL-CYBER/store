@@ -1,5 +1,6 @@
 import groceriesSchema from "./schemas/groceries-schema.json"
 import { composeVanillaStore } from "../src/composeVanillaStore"
+import "babel-polyfill"
 type Fruit = string;
 interface Veggie {
     veggieName: string
