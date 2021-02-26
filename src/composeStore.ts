@@ -41,7 +41,10 @@ const composeStore = <DataType>(options: composeStoreProps<DataType>) => {
         workspace: () => {
             if (typeof store().workspaceInstance === "undefined") {
                 const workspaceInstance = store().validator().makeWorkspace();
-                set({ workspaceInstance });
+                setTimeout(() => {
+                    set({ workspaceInstance });
+                }, 100);
+
                 return workspaceInstance;
             } else {
                 return store().workspaceInstance!;
@@ -54,14 +57,19 @@ const composeStore = <DataType>(options: composeStoreProps<DataType>) => {
         errors: [],
         status: "lazy",
         validator: () => {
+
             if (typeof store().validatorInstance !== "undefined") {
                 return store().validatorInstance!;
             } else {
                 const validatorInstance = typeof definition === "string" ?
                     new Validator<DataType>(schema, definition) :
                     new Validator<DataType>(schema);
-                set({ validatorInstance })
+                setTimeout(() => {
+                    set({ validatorInstance, status: "idle" });
+                }, 100);
                 return validatorInstance;
+
+
             }
         },
         listeners: [],

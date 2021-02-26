@@ -64,9 +64,11 @@ var composeStore = function composeStore(options) {
       workspace: function workspace() {
         if (typeof store().workspaceInstance === "undefined") {
           var workspaceInstance = store().validator().makeWorkspace();
-          set({
-            workspaceInstance: workspaceInstance
-          });
+          setTimeout(function () {
+            set({
+              workspaceInstance: workspaceInstance
+            });
+          }, 100);
           return workspaceInstance;
         } else {
           return store().workspaceInstance;
@@ -84,9 +86,12 @@ var composeStore = function composeStore(options) {
         } else {
           var _validatorInstance = typeof definition === "string" ? new _validator["default"](schema, definition) : new _validator["default"](schema);
 
-          set({
-            validatorInstance: _validatorInstance
-          });
+          setTimeout(function () {
+            set({
+              validatorInstance: _validatorInstance,
+              status: "idle"
+            });
+          }, 100);
           return _validatorInstance;
         }
       },
