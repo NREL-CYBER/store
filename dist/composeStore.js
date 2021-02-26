@@ -232,9 +232,9 @@ var composeStore = function composeStore(options) {
       },
       "import": function _import(entries) {
         var shouldValidate = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
-        var validator = store().validator();
 
         var findRecordErrors = function findRecordErrors(entries) {
+          var validator = store().validator();
           Object.values(entries).forEach(function (x) {
             if (!validator.validate(x)) {
               return validator.validate.errors;
