@@ -161,8 +161,8 @@ const composeStore = <DataType>(options: composeStoreProps<DataType>) => {
             return active ? store().retrieve(active) : undefined;
         },
         import: (entries, shouldValidate = true) => {
-            const validator = store().validator();
             const findRecordErrors = (entries: Record<string, DataType>) => {
+                const validator = store().validator();
                 Object.values(entries).forEach(x => {
                     if (!validator.validate(x)) {
                         return validator.validate.errors;
