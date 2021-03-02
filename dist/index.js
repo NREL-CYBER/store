@@ -9,21 +9,21 @@ Object.defineProperty(exports, "composeStore", {
     return _composeStore.composeStore;
   }
 });
+Object.defineProperty(exports, "composeStoreOptions", {
+  enumerable: true,
+  get: function get() {
+    return _composeStoreOptions.composeStoreOptions;
+  }
+});
 Object.defineProperty(exports, "Store", {
   enumerable: true,
   get: function get() {
     return _store.Store;
   }
 });
-Object.defineProperty(exports, "composeVanillaStore", {
-  enumerable: true,
-  get: function get() {
-    return _composeVanillaStore.composeVanillaStore;
-  }
-});
 
 var _composeStore = require("./composeStore");
 
-var _store = require("./store");
+var _composeStoreOptions = require("./composeStoreOptions");
 
-var _composeVanillaStore = require("./composeVanillaStore");
+var _store = require("./store");

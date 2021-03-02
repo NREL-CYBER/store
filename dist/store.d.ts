@@ -1,7 +1,7 @@
 import { ErrorObject } from "ajv";
 import Validator from "validator";
 import { Draft } from "immer";
-export declare type StoreStatus = "lazy" | "idle" | "inserting" | "removing" | "validating" | "invalid" | "workspace-update" | "clear";
+export declare type StoreStatus = "warming-workspace" | "warming-validator" | "booting" | "idle" | "importing" | "exporting" | "inserting" | "removing" | "erroring" | "updating" | "workspacing" | "clearing";
 export declare type StoreListener<DataType> = (itemIndex: string, item: Partial<DataType>, status: StoreStatus) => void;
 /**
  * add remove retrieve contract for identifiable data type
@@ -53,6 +53,14 @@ export declare type Store<dataType> = {
      * shares the status of a store ie inserting idle, removing etc...
      */
     status: StoreStatus;
+    /**
+     * Sets the status and updates the history...
+     */
+    setStatus: (status: StoreStatus) => void;
+    /**
+     * Stores the status history
+     */
+    statusHistory: StoreStatus[];
     /**
      * A list of all listeners on the collection
      */

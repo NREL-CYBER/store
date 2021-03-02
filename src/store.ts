@@ -3,7 +3,10 @@ import { ErrorObject } from "ajv";
 import Validator from "validator";
 import { Draft } from "immer";
 
-export type StoreStatus = "lazy" | "idle" | "inserting" | "removing" | "validating" | "invalid" | "workspace-update" | "clear";
+export type StoreStatus = "warming-workspace" | "warming-validator" |
+  "booting" | "idle" | "importing" | "exporting" | "inserting" |
+  "removing" | "erroring" | "updating" | "workspacing" | "clearing";
+
 export type StoreListener<DataType> = (itemIndex: string, item: Partial<DataType>, status: StoreStatus) => void;
 
 /**
@@ -56,6 +59,14 @@ export type Store<dataType> = {
    * shares the status of a store ie inserting idle, removing etc...
    */
   status: StoreStatus
+  /**
+   * Sets the status and updates the history...
+   */
+  setStatus: (status: StoreStatus) => void
+  /**
+   * Stores the status history
+   */
+  statusHistory: StoreStatus[]
   /**
    * A list of all listeners on the collection
    */

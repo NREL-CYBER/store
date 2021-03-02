@@ -1,4 +1,4 @@
 import { composeStore } from "./composeStore";
+import { composeStoreOptions } from "./composeStoreOptions";
 import { Store } from "./store";
-import { composeVanillaStore } from "./composeVanillaStore";
-export { Store, composeStore, composeVanillaStore };
+export { Store, composeStore, composeStoreOptions };

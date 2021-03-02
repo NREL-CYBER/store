@@ -1,6 +1,6 @@
-import groceriesSchema from "./schemas/groceries-schema.json"
-import { composeVanillaStore } from "../src/composeVanillaStore"
-import "babel-polyfill"
+import "babel-polyfill";
+import { composeVanillaStore } from "../dist/composeVanillaStore";
+import groceriesSchema from "./schemas/groceries-schema.json";
 type Fruit = string;
 interface Veggie {
     veggieName: string
@@ -26,7 +26,8 @@ const invalidGroceryList = {
 test("After insterting a valid brocoli, it is found in the veggie store", async () => {
     const veggieStoreAPI = composeVanillaStore<Veggie>({
         schema: groceriesSchema,
-        definition: "veggie"
+        definition: "veggie",
+        vanilla: true
     });
 
     await veggieStoreAPI.getState().insert(barocolli);
@@ -45,6 +46,7 @@ test("Grocery Workspace comes with empty veggie array", async () => {
 test("Brocolli set as initial value is able to be retrieved after init", () => {
     const veggieStoreAPI = composeVanillaStore<Veggie>(
         {
+            vanilla: true,
             schema: groceriesSchema,
             definition: "veggie",
             initial: { ["obama"]: barocolli }
@@ -55,6 +57,7 @@ test("Brocolli set as initial value is able to be retrieved after init", () => {
 test("Brocolli set as exported  as a key value pair on export", () => {
     const veggieStoreAPI = composeVanillaStore<Veggie>(
         {
+            vanilla: true,
             schema: groceriesSchema,
             definition: "veggie",
             initial: { ["obama"]: barocolli }
@@ -67,6 +70,7 @@ test("Brocolli set as exported  as a key value pair on export", () => {
 test("Exporting and importing a store validates", () => {
     const veggieStoreAPI = composeVanillaStore<Veggie>(
         {
+            vanilla: true,
             schema: groceriesSchema,
             definition: "veggie",
             initial: { ["obama"]: barocolli }
