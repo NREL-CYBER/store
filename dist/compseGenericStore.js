@@ -57,15 +57,19 @@ var composeGenericStore = function composeGenericStore(create, options) {
 
 
   var records = initial ? initial : {};
-  var index = initial ? Object.keys(initial) : []; // Create the implementation of the store type now that we have the initial values prepared.
+  var index = initial ? Object.keys(initial) : [];
+  var status = "booting"; // Create the implementation of the store type now that we have the initial values prepared.
 
   return create(function (set, store) {
     return {
       workspace: function workspace() {
         if (typeof store().workspaceInstance === "undefined") {
+          store().setStatus("warming-workspace");
           var workspaceInstance = store().validator().makeWorkspace();
           (0, _defer["default"])(function () {
-            store().setWorkspaceInstance(workspaceInstance);
+            set({
+              workspaceInstance: workspaceInstance
+            });
           });
           return workspaceInstance;
         } else {
@@ -77,15 +81,8 @@ var composeGenericStore = function composeGenericStore(create, options) {
       index: index,
       records: records,
       errors: [],
-      statusHistory: ["booting"],
+      statusHistory: [],
       setStatus: function setStatus(status) {
-        // We only store the last 9 statuses
-        // the whole reason for this is so that components can check the history
-        // so we know if it's just imported data or not on load
-        // so we don't need to go that far back.
-        //If at some point we want undo functionality, we can grab the immer patches
-        // and store more detailed info here.
-        // do this asynchronously in case we call from inside the render function
         (0, _defer["default"])(function () {
           set({
             status: status,
@@ -93,7 +90,7 @@ var composeGenericStore = function composeGenericStore(create, options) {
           });
         });
       },
-      status: "idle",
+      status: status,
       validator: function validator() {
         if (typeof store().validatorInstance !== "undefined") {
           return store().validatorInstance;
@@ -194,9 +191,14 @@ var composeGenericStore = function composeGenericStore(create, options) {
         return store().records[itemIndex];
       },
       setActive: function setActive(active) {
+        store().setStatus("activating");
+        store().listeners.forEach(function (callback) {
+          return callback(active, store().retrieve(active), "activating");
+        });
         set({
           active: active
         });
+        store().setStatus("idle");
       },
       setWorkspace: function setWorkspace(workspaceUpdate) {
         store().setStatus("workspacing");
@@ -205,7 +207,6 @@ var composeGenericStore = function composeGenericStore(create, options) {
         store().setStatus("idle");
       },
       setWorkspaceInstance: function setWorkspaceInstance(workspaceInstance) {
-        store().setStatus("warming-workspace");
         set({
           workspaceInstance: workspaceInstance
         });

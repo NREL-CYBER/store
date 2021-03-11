@@ -5,7 +5,7 @@ import { Draft } from "immer";
 
 export type StoreStatus = "warming-workspace" | "warming-validator" |
   "booting" | "idle" | "importing" | "exporting" | "inserting" |
-  "removing" | "erroring" | "updating" | "workspacing" | "clearing";
+  "removing" | "erroring" | "updating" | "workspacing" | "clearing" | "activating";
 
 export type StoreListener<DataType> = (itemIndex: string, item: Partial<DataType>, status: StoreStatus) => void;
 

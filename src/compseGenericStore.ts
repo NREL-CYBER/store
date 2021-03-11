@@ -4,7 +4,7 @@ import { v4 } from "uuid";
 import Validator, { RootSchemaObject } from "validator";
 import { StateCreator, StoreApi } from "zustand";
 import defer from "./defer";
-import { Store, StoreListener } from "./store";
+import { Store, StoreListener, StoreStatus } from "./store";
 
 /**
  * Create an indexed storage & validation for vanilla TS
@@ -35,7 +35,7 @@ const composeGenericStore = <DataType>(create: (storeCreator: StateCreator<Store
     const records: Record<string, DataType> = initial ? initial : {};
     const index: string[] = initial ? Object.keys(initial) : [];
 
-
+    const status: StoreStatus = "booting"
 
 
     // Create the implementation of the store type now that we have the initial values prepared.
@@ -43,9 +43,10 @@ const composeGenericStore = <DataType>(create: (storeCreator: StateCreator<Store
     return create((set, store) => ({
         workspace: () => {
             if (typeof store().workspaceInstance === "undefined") {
+                store().setStatus("warming-workspace");
                 const workspaceInstance = store().validator().makeWorkspace();
                 defer(() => {
-                    store().setWorkspaceInstance(workspaceInstance);
+                    set({ workspaceInstance });
                 });
                 return workspaceInstance;
             } else {
@@ -57,22 +58,13 @@ const composeGenericStore = <DataType>(create: (storeCreator: StateCreator<Store
         index,
         records,
         errors: [],
-        statusHistory: ["booting"],
+        statusHistory: [],
         setStatus: (status) => {
-            // We only store the last 9 statuses
-            // the whole reason for this is so that components can check the history
-            // so we know if it's just imported data or not on load
-            // so we don't need to go that far back.
-
-            //If at some point we want undo functionality, we can grab the immer patches
-            // and store more detailed info here.
-
-            // do this asynchronously in case we call from inside the render function
             defer(() => {
                 set({ status, statusHistory: [...store().statusHistory.slice(0, 9), status] });
-            });
+            })
         },
-        status: "idle",
+        status,
         validator: () => {
             if (typeof store().validatorInstance !== "undefined") {
                 return store().validatorInstance!;
@@ -150,7 +142,10 @@ const composeGenericStore = <DataType>(create: (storeCreator: StateCreator<Store
             return store().records[itemIndex];
         },
         setActive: (active) => {
+            store().setStatus("activating");
+            store().listeners.forEach(callback => callback(active, store().retrieve(active), "activating"))
             set({ active });
+            store().setStatus("idle");
         },
         setWorkspace: (workspaceUpdate) => {
             store().setStatus("workspacing");
@@ -159,7 +154,6 @@ const composeGenericStore = <DataType>(create: (storeCreator: StateCreator<Store
             store().setStatus("idle");
         },
         setWorkspaceInstance: (workspaceInstance) => {
-            store().setStatus("warming-workspace");
             set({ workspaceInstance });
             store().listeners.forEach(callback => callback("workspace", workspaceInstance, "workspacing"))
             store().setStatus("idle");
