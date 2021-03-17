@@ -1,5 +1,5 @@
 import Validator, { RootSchemaObject } from "validator";
-import { StateCreator, StoreApi } from "zustand";
+import { StateCreator, UseStore } from "zustand";
 import { Store } from "./store";
 /**
  * Create an indexed storage & validation for vanilla TS
@@ -14,5 +14,5 @@ interface composeStoreProps<DataType> {
     validator?: Validator<DataType>;
     vanilla?: boolean;
 }
-declare const composeGenericStore: <DataType>(create: (storeCreator: StateCreator<Store<DataType>, import("zustand").SetState<Store<DataType>>>) => StoreApi<Store<DataType>>, options: composeStoreProps<DataType>) => StoreApi<Store<DataType>>;
+declare const composeGenericStore: <StoreType, DataType>(create: (storeCreator: StateCreator<Store<DataType>, import("zustand").SetState<Store<DataType>>>) => UseStore<Store<DataType>>, options: composeStoreProps<DataType>) => UseStore<Store<DataType>>;
 export { composeGenericStore };

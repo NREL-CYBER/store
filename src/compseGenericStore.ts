@@ -2,7 +2,7 @@ import { ErrorObject } from "ajv";
 import produce from "immer";
 import { v4 } from "uuid";
 import Validator, { RootSchemaObject } from "validator";
-import { StateCreator, StoreApi } from "zustand";
+import { StateCreator, StoreApi, UseStore } from "zustand";
 import defer from "./defer";
 import { Store, StoreListener, StoreStatus } from "./store";
 
@@ -21,8 +21,7 @@ interface composeStoreProps<DataType> {
     vanilla?: boolean
 }
 
-
-const composeGenericStore = <DataType>(create: (storeCreator: StateCreator<Store<DataType>>) => StoreApi<Store<DataType>>, options: composeStoreProps<DataType>) => {
+const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCreator<Store<DataType>>) => UseStore<Store<DataType>>, options: composeStoreProps<DataType>) => {
     const { schema, definition, initial } = options;
     const validatorInstance = options.validator;
     const collection = definition ? definition : schema.$id ? schema.$id : "errorCollection"
