@@ -80,6 +80,8 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
             }
         },
         listeners: [],
+        search: (query: string) => store()
+            .filter(x => Object.values(x).join("").toLowerCase().includes(query.toLowerCase())),
         filter: (predicate: ((e: DataType) => boolean)) => store()
             .filterIndex(predicate).map(
                 matchingItemIndex => store().retrieve(matchingItemIndex)

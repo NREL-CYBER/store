@@ -109,6 +109,11 @@ var composeGenericStore = function composeGenericStore(create, options) {
         }
       },
       listeners: [],
+      search: function search(query) {
+        return store().filter(function (x) {
+          return Object.values(x).join("").toLowerCase().includes(query.toLowerCase());
+        });
+      },
       filter: function filter(predicate) {
         return store().filterIndex(predicate).map(function (matchingItemIndex) {
           return store().retrieve(matchingItemIndex);

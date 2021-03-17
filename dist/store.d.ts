@@ -108,6 +108,10 @@ export declare type Store<dataType> = {
      */
     setWorkspaceInstance: (instance: dataType) => void;
     /**
+     * filter all string properties by query (perhaps a full fuzzy index in the future)
+     */
+    search: (query: string) => dataType[];
+    /**
      * filter items by predicate
      */
     filter: (predicate: ((e: dataType) => boolean)) => dataType[];
