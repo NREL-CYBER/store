@@ -110,8 +110,10 @@ var composeGenericStore = function composeGenericStore(create, options) {
       },
       listeners: [],
       search: function search(query) {
-        return store().filter(function (x) {
+        return store().filterIndex(function (x) {
           return Object.values(x).join("").toLowerCase().includes(query.toLowerCase());
+        }).map(function (key) {
+          return [key, store().retrieve(key)];
         });
       },
       filter: function filter(predicate) {

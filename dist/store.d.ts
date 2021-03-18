@@ -110,7 +110,7 @@ export declare type Store<dataType> = {
     /**
      * filter all string properties by query (perhaps a full fuzzy index in the future)
      */
-    search: (query: string) => dataType[];
+    search: (query: string) => [string, dataType][];
     /**
      * filter items by predicate
      */
