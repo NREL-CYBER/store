@@ -50,7 +50,7 @@ Use Immer for updates
 add a listener
 
      ()=>{
-         const onAddressStoreChange = useAddress(x=>x.addListener)
+        const onAddressStoreChange = useAddress(x=>x.addListener)
         onAddressStoreChange((i, address, status)=>{
             if(status==="updating"){
                 alert("updated address!")
