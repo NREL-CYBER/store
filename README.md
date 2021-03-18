@@ -34,7 +34,9 @@ insert & display some data:
             </button>
          </>
      }
+     
 Use Immer for updates
+
      ()=>{
         const updateAddress = useAddress(x=>x.update)
         updateAddress(index,(addressDraft)=>{
@@ -45,6 +47,7 @@ Use Immer for updates
 
 
 add a listener
+
      ()=>{
          const onAddressStoreChange = useAddress(x=>x.addListener)
         onAddressStoreChange((i, address, status)=>{
