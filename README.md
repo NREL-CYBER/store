@@ -19,6 +19,7 @@ The store is a souped up object dictionary that uses zustand under the hood to n
 
 
 create a hook :
+
     const useAddress=composeStore(addressSchema)
 
 insert & display some data:
@@ -34,7 +35,7 @@ insert & display some data:
             </button>
          </>
      }
-     
+
 Use Immer for updates
 
      ()=>{
