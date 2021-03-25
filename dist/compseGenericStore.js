@@ -9,9 +9,7 @@ var _immer = _interopRequireDefault(require("immer"));
 
 var _uuid = require("uuid");
 
-var _validator = _interopRequireDefault(require("validator"));
-
-var _defer = _interopRequireDefault(require("./defer"));
+var _validator3 = _interopRequireDefault(require("validator"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -41,11 +39,15 @@ function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) return _arrayLikeToAr
 
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
 var composeGenericStore = function composeGenericStore(create, options) {
   var schema = options.schema,
       definition = options.definition,
       initial = options.initial;
-  var validatorInstance = options.validator;
+  var validator = options.validator;
   var collection = definition ? definition : schema.$id ? schema.$id : "errorCollection";
 
   if (collection === "errorCollection") {
@@ -62,51 +64,98 @@ var composeGenericStore = function composeGenericStore(create, options) {
 
   return create(function (set, store) {
     return {
-      workspace: function workspace() {
-        if (typeof store().workspaceInstance === "undefined") {
-          store().setStatus("warming-workspace");
-          var workspaceInstance = store().validator().makeWorkspace();
-          (0, _defer["default"])(function () {
-            set({
-              workspaceInstance: workspaceInstance
-            });
-          });
-          return workspaceInstance;
-        } else {
-          return store().workspaceInstance;
+      lazyLoadWorkspace: function () {
+        var _lazyLoadWorkspace = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
+          return regeneratorRuntime.wrap(function _callee2$(_context2) {
+            while (1) {
+              switch (_context2.prev = _context2.next) {
+                case 0:
+                  return _context2.abrupt("return", new Promise( /*#__PURE__*/function () {
+                    var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(complete) {
+                      var _validator, workspace;
+
+                      return regeneratorRuntime.wrap(function _callee$(_context) {
+                        while (1) {
+                          switch (_context.prev = _context.next) {
+                            case 0:
+                              if (!(typeof store().workspace === "undefined")) {
+                                _context.next = 10;
+                                break;
+                              }
+
+                              store().setStatus("warming-workspace");
+                              _context.next = 4;
+                              return store().lazyLoadValidator();
+
+                            case 4:
+                              _validator = _context.sent;
+                              workspace = _validator.makeWorkspace();
+                              set({
+                                workspace: workspace
+                              });
+                              complete(workspace);
+                              _context.next = 11;
+                              break;
+
+                            case 10:
+                              complete(store().workspace);
+
+                            case 11:
+                            case "end":
+                              return _context.stop();
+                          }
+                        }
+                      }, _callee);
+                    }));
+
+                    return function (_x) {
+                      return _ref.apply(this, arguments);
+                    };
+                  }()));
+
+                case 1:
+                case "end":
+                  return _context2.stop();
+              }
+            }
+          }, _callee2);
+        }));
+
+        function lazyLoadWorkspace() {
+          return _lazyLoadWorkspace.apply(this, arguments);
         }
-      },
-      validatorInstance: validatorInstance,
+
+        return lazyLoadWorkspace;
+      }(),
+      validator: validator,
       collection: collection,
       index: index,
       records: records,
       errors: [],
       statusHistory: [],
       setStatus: function setStatus(status) {
-        (0, _defer["default"])(function () {
-          set({
-            status: status,
-            statusHistory: [].concat(_toConsumableArray(store().statusHistory.slice(0, 9)), [status])
-          });
+        set({
+          status: status,
+          statusHistory: [].concat(_toConsumableArray(store().statusHistory.slice(0, 9)), [status])
         });
       },
       status: status,
-      validator: function validator() {
-        if (typeof store().validatorInstance !== "undefined") {
-          return store().validatorInstance;
-        } else {
-          store().setStatus("warming-validator");
+      lazyLoadValidator: function lazyLoadValidator() {
+        return new Promise(function (complete) {
+          if (typeof store().validator !== "undefined") {
+            complete(store().validator);
+          } else {
+            store().setStatus("warming-validator");
 
-          var _validatorInstance = typeof definition === "string" ? new _validator["default"](schema, definition) : new _validator["default"](schema);
+            var _validator2 = typeof definition === "string" ? new _validator3["default"](schema, definition) : new _validator3["default"](schema);
 
-          (0, _defer["default"])(function () {
             set({
-              validatorInstance: _validatorInstance
+              validator: _validator2
             });
             store().setStatus("idle");
-          });
-          return _validatorInstance;
-        }
+            complete(_validator2);
+          }
+        });
       },
       listeners: [],
       search: function search(query) {
@@ -158,37 +207,84 @@ var composeGenericStore = function composeGenericStore(create, options) {
         store().setStatus("idle");
         return true;
       },
-      insert: function insert(dataToAdd, optionalItemIndex) {
-        var itemIndex = optionalItemIndex ? optionalItemIndex : (0, _uuid.v4)();
-        store().setStatus("inserting");
+      insert: function () {
+        var _insert = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(dataToAdd, optionalItemIndex) {
+          return regeneratorRuntime.wrap(function _callee4$(_context4) {
+            while (1) {
+              switch (_context4.prev = _context4.next) {
+                case 0:
+                  return _context4.abrupt("return", new Promise( /*#__PURE__*/function () {
+                    var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(complete, failure) {
+                      var itemIndex, index, validator, valid, _records, _errors$pop, errors;
 
-        var index = _toConsumableArray(store().index);
+                      return regeneratorRuntime.wrap(function _callee3$(_context3) {
+                        while (1) {
+                          switch (_context3.prev = _context3.next) {
+                            case 0:
+                              store().setStatus("inserting");
+                              itemIndex = optionalItemIndex ? optionalItemIndex : (0, _uuid.v4)();
+                              index = _toConsumableArray(store().index);
+                              _context3.next = 5;
+                              return store().lazyLoadValidator();
 
-        var validator = store().validator();
-        var valid = validator.validate(dataToAdd);
+                            case 5:
+                              validator = _context3.sent;
+                              valid = validator.validate(dataToAdd);
 
-        if (valid) {
-          var _records = _objectSpread({}, store().records);
+                              if (valid) {
+                                _records = _objectSpread({}, store().records);
+                                _records[itemIndex] = dataToAdd;
+                                if (!index.includes(itemIndex)) index = [].concat(_toConsumableArray(index), [itemIndex]);
+                                set({
+                                  index: index,
+                                  records: _records
+                                });
+                                store().listeners.forEach(function (callback) {
+                                  return callback(itemIndex, _objectSpread({}, dataToAdd), "inserting");
+                                });
+                                store().setStatus("idle");
+                                complete(itemIndex);
+                              } else {
+                                errors = validator.validate.errors;
 
-          _records[itemIndex] = dataToAdd;
-          if (!index.includes(itemIndex)) index = [].concat(_toConsumableArray(index), [itemIndex]);
-          set({
-            index: index,
-            records: _records
-          });
-          store().listeners.forEach(function (callback) {
-            return callback(itemIndex, _objectSpread({}, dataToAdd), "inserting");
-          });
-          store().setStatus("idle");
-          return true;
-        } else {
-          var errors = validator.validate.errors;
-          errors && set({
-            errors: errors
-          }) && store().setStatus("erroring") && store().setStatus("idle");
-          return false;
+                                if (errors) {
+                                  set({
+                                    errors: errors
+                                  });
+                                  store().setStatus("erroring");
+                                  store().setStatus("idle");
+                                }
+
+                                failure((errors === null || errors === void 0 ? void 0 : (_errors$pop = errors.pop()) === null || _errors$pop === void 0 ? void 0 : _errors$pop.message) || collection + " item not valid!");
+                              }
+
+                            case 8:
+                            case "end":
+                              return _context3.stop();
+                          }
+                        }
+                      }, _callee3);
+                    }));
+
+                    return function (_x4, _x5) {
+                      return _ref2.apply(this, arguments);
+                    };
+                  }()));
+
+                case 1:
+                case "end":
+                  return _context4.stop();
+              }
+            }
+          }, _callee4);
+        }));
+
+        function insert(_x2, _x3) {
+          return _insert.apply(this, arguments);
         }
-      },
+
+        return insert;
+      }(),
       update: function update(id, itemUpdate) {
         store().setStatus("updating");
         var newItem = (0, _immer["default"])(store().retrieve(id), itemUpdate);
@@ -207,18 +303,45 @@ var composeGenericStore = function composeGenericStore(create, options) {
         });
         store().setStatus("idle");
       },
-      setWorkspace: function setWorkspace(workspaceUpdate) {
-        store().setStatus("workspacing");
-        var newWorkspace = (0, _immer["default"])(store().workspace(), workspaceUpdate);
-        store().setWorkspaceInstance(newWorkspace);
-        store().setStatus("idle");
-      },
-      setWorkspaceInstance: function setWorkspaceInstance(workspaceInstance) {
+      updateWorkspace: function () {
+        var _updateWorkspace = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(workspaceUpdate) {
+          var newWorkspace;
+          return regeneratorRuntime.wrap(function _callee5$(_context5) {
+            while (1) {
+              switch (_context5.prev = _context5.next) {
+                case 0:
+                  store().setStatus("workspacing");
+                  _context5.t0 = _immer["default"];
+                  _context5.next = 4;
+                  return store().lazyLoadWorkspace();
+
+                case 4:
+                  _context5.t1 = _context5.sent;
+                  _context5.t2 = workspaceUpdate;
+                  newWorkspace = (0, _context5.t0)(_context5.t1, _context5.t2);
+                  store().setWorkspaceInstance(newWorkspace);
+                  store().setStatus("idle");
+
+                case 9:
+                case "end":
+                  return _context5.stop();
+              }
+            }
+          }, _callee5);
+        }));
+
+        function updateWorkspace(_x6) {
+          return _updateWorkspace.apply(this, arguments);
+        }
+
+        return updateWorkspace;
+      }(),
+      setWorkspaceInstance: function setWorkspaceInstance(workspace) {
         set({
-          workspaceInstance: workspaceInstance
+          workspace: workspace
         });
         store().listeners.forEach(function (callback) {
-          return callback("workspace", workspaceInstance, "workspacing");
+          return callback("workspace", workspace, "workspacing");
         });
         store().setStatus("idle");
       },
@@ -253,42 +376,104 @@ var composeGenericStore = function composeGenericStore(create, options) {
 
         return active ? store().retrieve(active) : undefined;
       },
-      "import": function _import(entries) {
-        var shouldValidate = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
-        store().setStatus("importing");
+      "import": function () {
+        var _import2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7(entries) {
+          var shouldValidate,
+              findRecordErrors,
+              errors,
+              _args7 = arguments;
+          return regeneratorRuntime.wrap(function _callee7$(_context7) {
+            while (1) {
+              switch (_context7.prev = _context7.next) {
+                case 0:
+                  shouldValidate = _args7.length > 1 && _args7[1] !== undefined ? _args7[1] : true;
+                  store().setStatus("importing");
 
-        var findRecordErrors = function findRecordErrors(entries) {
-          var validator = store().validator();
-          Object.values(entries).forEach(function (x) {
-            if (!validator.validate(x)) {
-              return validator.validate.errors;
+                  findRecordErrors = /*#__PURE__*/function () {
+                    var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(entries) {
+                      var validator;
+                      return regeneratorRuntime.wrap(function _callee6$(_context6) {
+                        while (1) {
+                          switch (_context6.prev = _context6.next) {
+                            case 0:
+                              _context6.next = 2;
+                              return store().lazyLoadValidator();
+
+                            case 2:
+                              validator = _context6.sent;
+                              Object.values(entries).forEach(function (x) {
+                                if (!validator.validate(x)) {
+                                  return validator.validate.errors;
+                                }
+                              });
+                              return _context6.abrupt("return", []);
+
+                            case 5:
+                            case "end":
+                              return _context6.stop();
+                          }
+                        }
+                      }, _callee6);
+                    }));
+
+                    return function findRecordErrors(_x8) {
+                      return _ref3.apply(this, arguments);
+                    };
+                  }();
+
+                  if (!shouldValidate) {
+                    _context7.next = 9;
+                    break;
+                  }
+
+                  _context7.next = 6;
+                  return findRecordErrors(records);
+
+                case 6:
+                  _context7.t0 = _context7.sent;
+                  _context7.next = 10;
+                  break;
+
+                case 9:
+                  _context7.t0 = [];
+
+                case 10:
+                  errors = _context7.t0;
+                  set({
+                    errors: errors,
+                    records: entries,
+                    index: Object.keys(entries)
+                  });
+
+                  if (errors.length == 0) {
+                    Object.entries(entries).forEach(function (_ref4) {
+                      var _ref5 = _slicedToArray(_ref4, 2),
+                          itemIndex = _ref5[0],
+                          importItem = _ref5[1];
+
+                      store().listeners.forEach(function (callback) {
+                        return callback(itemIndex, _objectSpread({}, importItem), "inserting");
+                      });
+                    });
+                  }
+
+                  store().setStatus("idle");
+                  return _context7.abrupt("return", errors.length == 0);
+
+                case 15:
+                case "end":
+                  return _context7.stop();
+              }
             }
-          });
-          return [];
-        };
+          }, _callee7);
+        }));
 
-        var errors = shouldValidate ? findRecordErrors(records) : [];
-        set({
-          errors: errors,
-          records: entries,
-          index: Object.keys(entries)
-        });
-
-        if (errors.length == 0) {
-          Object.entries(entries).forEach(function (_ref) {
-            var _ref2 = _slicedToArray(_ref, 2),
-                itemIndex = _ref2[0],
-                importItem = _ref2[1];
-
-            store().listeners.forEach(function (callback) {
-              return callback(itemIndex, _objectSpread({}, importItem), "inserting");
-            });
-          });
+        function _import(_x7) {
+          return _import2.apply(this, arguments);
         }
 
-        store().setStatus("idle");
-        return errors.length == 0;
-      },
+        return _import;
+      }(),
       clear: function clear() {
         store().setStatus("clearing");
         store()["import"]({});
@@ -305,8 +490,9 @@ var composeGenericStore = function composeGenericStore(create, options) {
       },
       exportWorkspace: function exportWorkspace() {
         store().setStatus("exporting");
-        return JSON.stringify(store().workspace());
+        var workspaceJSON = JSON.stringify(store().workspace);
         store().setStatus("idle");
+        return workspaceJSON;
       }
     };
   });

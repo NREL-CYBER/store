@@ -1,4 +1,4 @@
-import "babel-polyfill";
+import 'regenerator-runtime/runtime'
 import { composeVanillaStore } from "../dist/composeVanillaStore";
 import groceriesSchema from "./schemas/groceries-schema.json";
 type Fruit = string;
@@ -38,7 +38,7 @@ test("Grocery Workspace comes with empty veggie array", async () => {
     const veggieStoreAPI = composeVanillaStore<Groceries>({
         schema: groceriesSchema
     });
-    const workspace = await veggieStoreAPI.getState().workspace();
+    const workspace = await veggieStoreAPI.getState().lazyLoadWorkspace();
     expect(workspace.fruits.length).toEqual(0);
 })
 

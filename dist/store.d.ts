@@ -27,7 +27,7 @@ export declare type Store<dataType> = {
     /**
     *  Lazy instantiate workspace on request for performance
     */
-    workspaceInstance?: dataType;
+    workspace?: dataType;
     /**
     * workspace data is not validated.
     * Idea is this is where you build data
@@ -35,15 +35,15 @@ export declare type Store<dataType> = {
     * then it will graduate and be inserted
     *
     */
-    workspace: () => dataType;
+    lazyLoadWorkspace: () => Promise<dataType>;
     /**
     *  Lazy instantiate Validator on request app boot performance
      */
-    validatorInstance?: Validator<dataType>;
+    validator?: Validator<dataType>;
     /**
     * Validator is triggered on insert and import
     */
-    validator: () => Validator<dataType>;
+    lazyLoadValidator: () => Promise<Validator<dataType>>;
     /**
       * Validation errors
       * validation occurs on load and add
@@ -78,11 +78,11 @@ export declare type Store<dataType> = {
     /**
      * Insert a data-item, optionally specify the identifier. uuid4 will be used by default
      */
-    insert: (dataItem: any, id?: string) => boolean;
+    insert: (dataItem: any, id?: string) => Promise<boolean>;
     /**
      * Insert a data-item, optionally specify the identifier. uuid4 will be used by default
      */
-    update: (id: string, change: (item: Draft<dataType>) => void) => boolean;
+    update: (id: string, change: (item: Draft<dataType>) => void) => Promise<boolean>;
     /**
      * Remove a single item in the store
      */
@@ -102,7 +102,7 @@ export declare type Store<dataType> = {
     /**
      * update the workspace with an immer function
      */
-    setWorkspace: (workspaceUpdate: (workspace: Draft<dataType>) => void) => void;
+    updateWorkspace: (workspaceUpdate: (workspace: Draft<dataType>) => void) => void;
     /**
      * set the workspace directly (from serialized workspace)
      */
@@ -135,7 +135,7 @@ export declare type Store<dataType> = {
     /**
      * Import Records
      */
-    import: (records: Record<string, dataType>, validate?: boolean) => boolean;
+    import: (records: Record<string, dataType>, validate?: boolean) => Promise<boolean>;
     /**
      * Export to serializable string
      */

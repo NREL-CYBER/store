@@ -2,8 +2,7 @@ import { ErrorObject } from "ajv";
 import produce from "immer";
 import { v4 } from "uuid";
 import Validator, { RootSchemaObject } from "validator";
-import { StateCreator, StoreApi, UseStore } from "zustand";
-import defer from "./defer";
+import { StateCreator, UseStore } from "zustand";
 import { Store, StoreListener, StoreStatus } from "./store";
 
 /**
@@ -23,7 +22,7 @@ interface composeStoreProps<DataType> {
 
 const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCreator<Store<DataType>>) => UseStore<Store<DataType>>, options: composeStoreProps<DataType>) => {
     const { schema, definition, initial } = options;
-    const validatorInstance = options.validator;
+    const validator = options.validator;
     const collection = definition ? definition : schema.$id ? schema.$id : "errorCollection"
     if (collection === "errorCollection") {
         throw new Error("invalid JSON schema");
@@ -40,44 +39,44 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
     // Create the implementation of the store type now that we have the initial values prepared.
 
     return create((set, store) => ({
-        workspace: () => {
-            if (typeof store().workspaceInstance === "undefined") {
-                store().setStatus("warming-workspace");
-                const workspaceInstance = store().validator().makeWorkspace();
-                defer(() => {
-                    set({ workspaceInstance });
-                });
-                return workspaceInstance;
-            } else {
-                return store().workspaceInstance!;
-            }
+        lazyLoadWorkspace: async () => {
+            return new Promise(async (complete) => {
+                if (typeof store().workspace === "undefined") {
+                    store().setStatus("warming-workspace");
+                    const validator = await store().lazyLoadValidator();
+                    const workspace = validator.makeWorkspace();
+                    set({ workspace });
+                    complete(workspace);
+                } else {
+                    complete(store().workspace!);
+                }
+            })
         },
-        validatorInstance,
+        validator,
         collection,
         index,
         records,
         errors: [],
         statusHistory: [],
         setStatus: (status) => {
-            defer(() => {
-                set({ status, statusHistory: [...store().statusHistory.slice(0, 9), status] });
-            })
+            set({ status, statusHistory: [...store().statusHistory.slice(0, 9), status] });
         },
         status,
-        validator: () => {
-            if (typeof store().validatorInstance !== "undefined") {
-                return store().validatorInstance!;
-            } else {
-                store().setStatus("warming-validator");
-                const validatorInstance = typeof definition === "string" ?
-                    new Validator<DataType>(schema, definition) :
-                    new Validator<DataType>(schema);
-                defer(() => {
-                    set({ validatorInstance });
+        lazyLoadValidator: () => {
+            return new Promise<Validator<DataType>>((complete) => {
+                if (typeof store().validator !== "undefined") {
+                    complete(store().validator!);
+                } else {
+                    store().setStatus("warming-validator");
+                    const validator = typeof definition === "string" ?
+                        new Validator<DataType>(schema, definition) :
+                        new Validator<DataType>(schema);
+                    set({ validator });
                     store().setStatus("idle");
-                });
-                return validatorInstance;
+                    complete(validator);
+                }
             }
+            )
         },
         listeners: [],
         search: (query: string) => store()
@@ -115,28 +114,34 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
             store().setStatus("idle");
             return true;
         },
-        insert: (dataToAdd, optionalItemIndex) => {
-            const itemIndex = optionalItemIndex ? optionalItemIndex : v4();
-            store().setStatus("inserting");
-            let index = [...store().index];
-            const validator = store().validator();
-            const valid = validator.validate(dataToAdd);
-            if (valid) {
-                let records = { ...store().records };
-                records[itemIndex] = dataToAdd;
-                if (!index.includes(itemIndex))
-                    index = [...index, itemIndex];
-                set({ index, records });
-                store().listeners.forEach(callback => callback(itemIndex, { ...dataToAdd }, "inserting"))
-                store().setStatus("idle")
-                return true;
-            } else {
-                const errors = validator.validate.errors;
-                errors && set({ errors }) && store().setStatus("erroring") && store().setStatus("idle");
+        insert: async (dataToAdd, optionalItemIndex) => {
+            return new Promise<string>(async (complete, failure) => {
+                store().setStatus("inserting");
+                const itemIndex = optionalItemIndex ? optionalItemIndex : v4();
+                let index = [...store().index];
+                const validator = await store().lazyLoadValidator();
 
-                return false;
-            }
+                const valid = validator.validate(dataToAdd);
+                if (valid) {
+                    let records = { ...store().records };
+                    records[itemIndex] = dataToAdd;
+                    if (!index.includes(itemIndex))
+                        index = [...index, itemIndex];
+                    set({ index, records });
+                    store().listeners.forEach(callback => callback(itemIndex, { ...dataToAdd }, "inserting"))
+                    store().setStatus("idle")
+                    complete(itemIndex);
+                } else {
+                    const errors = validator.validate.errors;
+                    if (errors) {
+                        set({ errors })
+                        store().setStatus("erroring")
 
+                        store().setStatus("idle");
+                    }
+                    failure(errors?.pop()?.message || collection + " item not valid!");
+                }
+            })
         }, update: (id, itemUpdate) => {
             store().setStatus("updating");
             const newItem = produce<DataType>(store().retrieve(id), itemUpdate);
@@ -152,15 +157,16 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
             set({ active });
             store().setStatus("idle");
         },
-        setWorkspace: (workspaceUpdate) => {
+        updateWorkspace: async (workspaceUpdate) => {
             store().setStatus("workspacing");
-            const newWorkspace = produce<DataType>(store().workspace(), workspaceUpdate);
+
+            const newWorkspace = produce<DataType>(await store().lazyLoadWorkspace(), workspaceUpdate);
             store().setWorkspaceInstance(newWorkspace);
             store().setStatus("idle");
         },
-        setWorkspaceInstance: (workspaceInstance) => {
-            set({ workspaceInstance });
-            store().listeners.forEach(callback => callback("workspace", workspaceInstance, "workspacing"))
+        setWorkspaceInstance: (workspace) => {
+            set({ workspace });
+            store().listeners.forEach(callback => callback("workspace", workspace, "workspacing"))
             store().setStatus("idle");
         },
         addListener: (callback: StoreListener<DataType>) => {
@@ -192,10 +198,10 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
             const { active } = store();
             return active ? store().retrieve(active) : undefined;
         },
-        import: (entries, shouldValidate = true) => {
+        import: async (entries, shouldValidate = true) => {
             store().setStatus("importing");
-            const findRecordErrors = (entries: Record<string, DataType>) => {
-                const validator = store().validator();
+            const findRecordErrors = async (entries: Record<string, DataType>) => {
+                const validator = await store().lazyLoadValidator();
                 Object.values(entries).forEach(x => {
                     if (!validator.validate(x)) {
                         return validator.validate.errors;
@@ -203,7 +209,7 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
                 })
                 return [];
             }
-            const errors: ErrorObject<string, Record<string, any>>[] = shouldValidate ? findRecordErrors(records) : [];
+            const errors: ErrorObject<string, Record<string, any>>[] = shouldValidate ? await findRecordErrors(records) : [];
             set({ errors, records: entries, index: Object.keys(entries) });
             if (errors.length == 0) {
                 Object.entries(entries).forEach(([itemIndex, importItem]) => {
@@ -227,8 +233,9 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
 
         exportWorkspace: () => {
             store().setStatus("exporting");
-            return JSON.stringify(store().workspace());
+            const workspaceJSON = JSON.stringify(store().workspace);
             store().setStatus("idle");
+            return workspaceJSON;
         }
     }))
 }
