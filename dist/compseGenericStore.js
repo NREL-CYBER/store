@@ -305,24 +305,23 @@ var composeGenericStore = function composeGenericStore(create, options) {
       },
       updateWorkspace: function () {
         var _updateWorkspace = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(workspaceUpdate) {
-          var newWorkspace;
+          var workspace, newWorkspace;
           return regeneratorRuntime.wrap(function _callee5$(_context5) {
             while (1) {
               switch (_context5.prev = _context5.next) {
                 case 0:
                   store().setStatus("workspacing");
-                  _context5.t0 = _immer["default"];
-                  _context5.next = 4;
+                  _context5.next = 3;
                   return store().lazyLoadWorkspace();
 
-                case 4:
-                  _context5.t1 = _context5.sent;
-                  _context5.t2 = workspaceUpdate;
-                  newWorkspace = (0, _context5.t0)(_context5.t1, _context5.t2);
+                case 3:
+                  workspace = _context5.sent;
+                  newWorkspace = (0, _immer["default"])(workspace, workspaceUpdate);
+                  console.log(workspace, "set instance");
                   store().setWorkspaceInstance(newWorkspace);
                   store().setStatus("idle");
 
-                case 9:
+                case 8:
                 case "end":
                   return _context5.stop();
               }
@@ -337,13 +336,13 @@ var composeGenericStore = function composeGenericStore(create, options) {
         return updateWorkspace;
       }(),
       setWorkspaceInstance: function setWorkspaceInstance(workspace) {
+        console.log(workspace, "set instnace");
         set({
           workspace: workspace
         });
         store().listeners.forEach(function (callback) {
           return callback("workspace", workspace, "workspacing");
         });
-        store().setStatus("idle");
       },
       addListener: function addListener(callback) {
         set({

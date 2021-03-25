@@ -78,11 +78,11 @@ export declare type Store<dataType> = {
     /**
      * Insert a data-item, optionally specify the identifier. uuid4 will be used by default
      */
-    insert: (dataItem: any, id?: string) => Promise<boolean>;
+    insert: (dataItem: any, id?: string) => Promise<string>;
     /**
      * Insert a data-item, optionally specify the identifier. uuid4 will be used by default
      */
-    update: (id: string, change: (item: Draft<dataType>) => void) => Promise<boolean>;
+    update: (id: string, change: (item: Draft<dataType>) => void) => Promise<string>;
     /**
      * Remove a single item in the store
      */
