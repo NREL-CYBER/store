@@ -159,15 +159,16 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
         },
         updateWorkspace: async (workspaceUpdate) => {
             store().setStatus("workspacing");
-
-            const newWorkspace = produce<DataType>(await store().lazyLoadWorkspace(), workspaceUpdate);
+            const workspace = await store().lazyLoadWorkspace();
+            const newWorkspace = produce<DataType>(workspace, workspaceUpdate);
+            console.log(workspace, "set instance")
             store().setWorkspaceInstance(newWorkspace);
             store().setStatus("idle");
         },
         setWorkspaceInstance: (workspace) => {
+            console.log(workspace, "set instnace")
             set({ workspace });
             store().listeners.forEach(callback => callback("workspace", workspace, "workspacing"))
-            store().setStatus("idle");
         },
         addListener: (callback: StoreListener<DataType>) => {
             set({ listeners: [...store().listeners, callback] })
