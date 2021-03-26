@@ -64,6 +64,7 @@ var composeGenericStore = function composeGenericStore(create, options) {
 
   return create(function (set, store) {
     return {
+      workspace: undefined,
       lazyLoadWorkspace: function () {
         var _lazyLoadWorkspace = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
           return regeneratorRuntime.wrap(function _callee2$(_context2) {
@@ -317,11 +318,10 @@ var composeGenericStore = function composeGenericStore(create, options) {
                 case 3:
                   workspace = _context5.sent;
                   newWorkspace = (0, _immer["default"])(workspace, workspaceUpdate);
-                  console.log(workspace, "set instance");
                   store().setWorkspaceInstance(newWorkspace);
                   store().setStatus("idle");
 
-                case 8:
+                case 7:
                 case "end":
                   return _context5.stop();
               }
@@ -336,7 +336,6 @@ var composeGenericStore = function composeGenericStore(create, options) {
         return updateWorkspace;
       }(),
       setWorkspaceInstance: function setWorkspaceInstance(workspace) {
-        console.log(workspace, "set instnace");
         set({
           workspace: workspace
         });

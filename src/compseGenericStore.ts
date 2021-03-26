@@ -39,6 +39,7 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
     // Create the implementation of the store type now that we have the initial values prepared.
 
     return create((set, store) => ({
+        workspace: undefined,
         lazyLoadWorkspace: async () => {
             return new Promise(async (complete) => {
                 if (typeof store().workspace === "undefined") {
@@ -161,12 +162,10 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
             store().setStatus("workspacing");
             const workspace = await store().lazyLoadWorkspace();
             const newWorkspace = produce<DataType>(workspace, workspaceUpdate);
-            console.log(workspace, "set instance")
             store().setWorkspaceInstance(newWorkspace);
             store().setStatus("idle");
         },
         setWorkspaceInstance: (workspace) => {
-            console.log(workspace, "set instnace")
             set({ workspace });
             store().listeners.forEach(callback => callback("workspace", workspace, "workspacing"))
         },
