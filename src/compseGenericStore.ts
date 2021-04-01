@@ -115,13 +115,12 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
             store().setStatus("idle");
             return true;
         },
-        insert: async (dataToAdd, optionalItemIndex) => {
-            return new Promise<string>(async (complete, failure) => {
+        insert: (dataToAdd, optionalItemIndex) => {
+            return new Promise<string>(async (resolve, reject) => {
                 store().setStatus("inserting");
                 const itemIndex = optionalItemIndex ? optionalItemIndex : v4();
                 let index = [...store().index];
                 const validator = await store().lazyLoadValidator();
-
                 const valid = validator.validate(dataToAdd);
                 if (valid) {
                     let records = { ...store().records };
@@ -131,16 +130,16 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
                     set({ index, records });
                     store().listeners.forEach(callback => callback(itemIndex, { ...dataToAdd }, "inserting"))
                     store().setStatus("idle")
-                    complete(itemIndex);
+                    resolve(itemIndex);
                 } else {
                     const errors = validator.validate.errors;
                     if (errors) {
                         set({ errors })
                         store().setStatus("erroring")
-
+                        console.log(errors);
                         store().setStatus("idle");
                     }
-                    failure(errors?.pop()?.message || collection + " item not valid!");
+                    reject(errors?.pop()?.message || collection + " item not valid!");
                 }
             })
         }, update: (id, itemUpdate) => {
@@ -158,12 +157,15 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
             set({ active });
             store().setStatus("idle");
         },
-        updateWorkspace: async (workspaceUpdate) => {
+        updateWorkspace: (workspaceUpdate) => {
             store().setStatus("workspacing");
-            const workspace = await store().lazyLoadWorkspace();
-            const newWorkspace = produce<DataType>(workspace, workspaceUpdate);
-            store().setWorkspaceInstance(newWorkspace);
-            store().setStatus("idle");
+            return new Promise(async (resolve, reject) => {
+                const workspace = await store().lazyLoadWorkspace();
+                const newWorkspace = produce<DataType>(workspace, workspaceUpdate);
+                store().setWorkspaceInstance(newWorkspace);
+                store().setStatus("idle");
+                resolve()
+            });
         },
         setWorkspaceInstance: (workspace) => {
             set({ workspace });
@@ -198,26 +200,28 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
             const { active } = store();
             return active ? store().retrieve(active) : undefined;
         },
-        import: async (entries, shouldValidate = true) => {
-            store().setStatus("importing");
-            const findRecordErrors = async (entries: Record<string, DataType>) => {
-                const validator = await store().lazyLoadValidator();
-                Object.values(entries).forEach(x => {
-                    if (!validator.validate(x)) {
-                        return validator.validate.errors;
-                    }
-                })
-                return [];
-            }
-            const errors: ErrorObject<string, Record<string, any>>[] = shouldValidate ? await findRecordErrors(records) : [];
-            set({ errors, records: entries, index: Object.keys(entries) });
-            if (errors.length == 0) {
-                Object.entries(entries).forEach(([itemIndex, importItem]) => {
-                    store().listeners.forEach(callback => callback(itemIndex, { ...importItem }, "inserting"))
-                })
-            }
-            store().setStatus("idle");
-            return errors.length == 0;
+        import: (entries, shouldValidate = true) => {
+            return new Promise(async (resolve, reject) => {
+                store().setStatus("importing");
+                const findRecordErrors = async (entries: Record<string, DataType>) => {
+                    const validator = await store().lazyLoadValidator();
+                    Object.values(entries).forEach(x => {
+                        if (!validator.validate(x)) {
+                            return validator.validate.errors;
+                        }
+                    })
+                    return [];
+                }
+                const errors: ErrorObject<string, Record<string, any>>[] = shouldValidate ? await findRecordErrors(records) : [];
+                set({ errors, records: entries, index: Object.keys(entries) });
+                if (errors.length == 0) {
+                    Object.entries(entries).forEach(([itemIndex, importItem]) => {
+                        store().listeners.forEach(callback => callback(itemIndex, { ...importItem }, "inserting"))
+                    })
+                }
+                store().setStatus("idle");
+                errors.length === 0 ? resolve() : reject();
+            })
         }, clear: () => {
             store().setStatus("clearing");
             store().import({});

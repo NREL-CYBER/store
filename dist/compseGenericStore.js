@@ -208,84 +208,66 @@ var composeGenericStore = function composeGenericStore(create, options) {
         store().setStatus("idle");
         return true;
       },
-      insert: function () {
-        var _insert = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(dataToAdd, optionalItemIndex) {
-          return regeneratorRuntime.wrap(function _callee4$(_context4) {
-            while (1) {
-              switch (_context4.prev = _context4.next) {
-                case 0:
-                  return _context4.abrupt("return", new Promise( /*#__PURE__*/function () {
-                    var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(complete, failure) {
-                      var itemIndex, index, validator, valid, _records, _errors$pop, errors;
+      insert: function insert(dataToAdd, optionalItemIndex) {
+        return new Promise( /*#__PURE__*/function () {
+          var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(resolve, reject) {
+            var itemIndex, index, validator, valid, _records, _errors$pop, errors;
 
-                      return regeneratorRuntime.wrap(function _callee3$(_context3) {
-                        while (1) {
-                          switch (_context3.prev = _context3.next) {
-                            case 0:
-                              store().setStatus("inserting");
-                              itemIndex = optionalItemIndex ? optionalItemIndex : (0, _uuid.v4)();
-                              index = _toConsumableArray(store().index);
-                              _context3.next = 5;
-                              return store().lazyLoadValidator();
+            return regeneratorRuntime.wrap(function _callee3$(_context3) {
+              while (1) {
+                switch (_context3.prev = _context3.next) {
+                  case 0:
+                    store().setStatus("inserting");
+                    itemIndex = optionalItemIndex ? optionalItemIndex : (0, _uuid.v4)();
+                    index = _toConsumableArray(store().index);
+                    _context3.next = 5;
+                    return store().lazyLoadValidator();
 
-                            case 5:
-                              validator = _context3.sent;
-                              valid = validator.validate(dataToAdd);
+                  case 5:
+                    validator = _context3.sent;
+                    valid = validator.validate(dataToAdd);
 
-                              if (valid) {
-                                _records = _objectSpread({}, store().records);
-                                _records[itemIndex] = dataToAdd;
-                                if (!index.includes(itemIndex)) index = [].concat(_toConsumableArray(index), [itemIndex]);
-                                set({
-                                  index: index,
-                                  records: _records
-                                });
-                                store().listeners.forEach(function (callback) {
-                                  return callback(itemIndex, _objectSpread({}, dataToAdd), "inserting");
-                                });
-                                store().setStatus("idle");
-                                complete(itemIndex);
-                              } else {
-                                errors = validator.validate.errors;
+                    if (valid) {
+                      _records = _objectSpread({}, store().records);
+                      _records[itemIndex] = dataToAdd;
+                      if (!index.includes(itemIndex)) index = [].concat(_toConsumableArray(index), [itemIndex]);
+                      set({
+                        index: index,
+                        records: _records
+                      });
+                      store().listeners.forEach(function (callback) {
+                        return callback(itemIndex, _objectSpread({}, dataToAdd), "inserting");
+                      });
+                      store().setStatus("idle");
+                      resolve(itemIndex);
+                    } else {
+                      errors = validator.validate.errors;
 
-                                if (errors) {
-                                  set({
-                                    errors: errors
-                                  });
-                                  store().setStatus("erroring");
-                                  store().setStatus("idle");
-                                }
+                      if (errors) {
+                        set({
+                          errors: errors
+                        });
+                        store().setStatus("erroring");
+                        console.log(errors);
+                        store().setStatus("idle");
+                      }
 
-                                failure((errors === null || errors === void 0 ? void 0 : (_errors$pop = errors.pop()) === null || _errors$pop === void 0 ? void 0 : _errors$pop.message) || collection + " item not valid!");
-                              }
+                      reject((errors === null || errors === void 0 ? void 0 : (_errors$pop = errors.pop()) === null || _errors$pop === void 0 ? void 0 : _errors$pop.message) || collection + " item not valid!");
+                    }
 
-                            case 8:
-                            case "end":
-                              return _context3.stop();
-                          }
-                        }
-                      }, _callee3);
-                    }));
-
-                    return function (_x4, _x5) {
-                      return _ref2.apply(this, arguments);
-                    };
-                  }()));
-
-                case 1:
-                case "end":
-                  return _context4.stop();
+                  case 8:
+                  case "end":
+                    return _context3.stop();
+                }
               }
-            }
-          }, _callee4);
-        }));
+            }, _callee3);
+          }));
 
-        function insert(_x2, _x3) {
-          return _insert.apply(this, arguments);
-        }
-
-        return insert;
-      }(),
+          return function (_x2, _x3) {
+            return _ref2.apply(this, arguments);
+          };
+        }());
+      },
       update: function update(id, itemUpdate) {
         store().setStatus("updating");
         var newItem = (0, _immer["default"])(store().retrieve(id), itemUpdate);
@@ -304,37 +286,38 @@ var composeGenericStore = function composeGenericStore(create, options) {
         });
         store().setStatus("idle");
       },
-      updateWorkspace: function () {
-        var _updateWorkspace = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(workspaceUpdate) {
-          var workspace, newWorkspace;
-          return regeneratorRuntime.wrap(function _callee5$(_context5) {
-            while (1) {
-              switch (_context5.prev = _context5.next) {
-                case 0:
-                  store().setStatus("workspacing");
-                  _context5.next = 3;
-                  return store().lazyLoadWorkspace();
+      updateWorkspace: function updateWorkspace(workspaceUpdate) {
+        store().setStatus("workspacing");
+        return new Promise( /*#__PURE__*/function () {
+          var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(resolve, reject) {
+            var workspace, newWorkspace;
+            return regeneratorRuntime.wrap(function _callee4$(_context4) {
+              while (1) {
+                switch (_context4.prev = _context4.next) {
+                  case 0:
+                    _context4.next = 2;
+                    return store().lazyLoadWorkspace();
 
-                case 3:
-                  workspace = _context5.sent;
-                  newWorkspace = (0, _immer["default"])(workspace, workspaceUpdate);
-                  store().setWorkspaceInstance(newWorkspace);
-                  store().setStatus("idle");
+                  case 2:
+                    workspace = _context4.sent;
+                    newWorkspace = (0, _immer["default"])(workspace, workspaceUpdate);
+                    store().setWorkspaceInstance(newWorkspace);
+                    store().setStatus("idle");
+                    resolve();
 
-                case 7:
-                case "end":
-                  return _context5.stop();
+                  case 7:
+                  case "end":
+                    return _context4.stop();
+                }
               }
-            }
-          }, _callee5);
-        }));
+            }, _callee4);
+          }));
 
-        function updateWorkspace(_x6) {
-          return _updateWorkspace.apply(this, arguments);
-        }
-
-        return updateWorkspace;
-      }(),
+          return function (_x4, _x5) {
+            return _ref3.apply(this, arguments);
+          };
+        }());
+      },
       setWorkspaceInstance: function setWorkspaceInstance(workspace) {
         set({
           workspace: workspace
@@ -374,104 +357,101 @@ var composeGenericStore = function composeGenericStore(create, options) {
 
         return active ? store().retrieve(active) : undefined;
       },
-      "import": function () {
-        var _import2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7(entries) {
-          var shouldValidate,
-              findRecordErrors,
-              errors,
-              _args7 = arguments;
-          return regeneratorRuntime.wrap(function _callee7$(_context7) {
-            while (1) {
-              switch (_context7.prev = _context7.next) {
-                case 0:
-                  shouldValidate = _args7.length > 1 && _args7[1] !== undefined ? _args7[1] : true;
-                  store().setStatus("importing");
+      "import": function _import(entries) {
+        var shouldValidate = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+        return new Promise( /*#__PURE__*/function () {
+          var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(resolve, reject) {
+            var findRecordErrors, errors;
+            return regeneratorRuntime.wrap(function _callee6$(_context6) {
+              while (1) {
+                switch (_context6.prev = _context6.next) {
+                  case 0:
+                    store().setStatus("importing");
 
-                  findRecordErrors = /*#__PURE__*/function () {
-                    var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(entries) {
-                      var validator;
-                      return regeneratorRuntime.wrap(function _callee6$(_context6) {
-                        while (1) {
-                          switch (_context6.prev = _context6.next) {
-                            case 0:
-                              _context6.next = 2;
-                              return store().lazyLoadValidator();
+                    findRecordErrors = /*#__PURE__*/function () {
+                      var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(entries) {
+                        var validator;
+                        return regeneratorRuntime.wrap(function _callee5$(_context5) {
+                          while (1) {
+                            switch (_context5.prev = _context5.next) {
+                              case 0:
+                                _context5.next = 2;
+                                return store().lazyLoadValidator();
 
-                            case 2:
-                              validator = _context6.sent;
-                              Object.values(entries).forEach(function (x) {
-                                if (!validator.validate(x)) {
-                                  return validator.validate.errors;
-                                }
-                              });
-                              return _context6.abrupt("return", []);
+                              case 2:
+                                validator = _context5.sent;
+                                Object.values(entries).forEach(function (x) {
+                                  if (!validator.validate(x)) {
+                                    return validator.validate.errors;
+                                  }
+                                });
+                                return _context5.abrupt("return", []);
 
-                            case 5:
-                            case "end":
-                              return _context6.stop();
+                              case 5:
+                              case "end":
+                                return _context5.stop();
+                            }
                           }
-                        }
-                      }, _callee6);
-                    }));
+                        }, _callee5);
+                      }));
 
-                    return function findRecordErrors(_x8) {
-                      return _ref3.apply(this, arguments);
-                    };
-                  }();
+                      return function findRecordErrors(_x8) {
+                        return _ref5.apply(this, arguments);
+                      };
+                    }();
 
-                  if (!shouldValidate) {
-                    _context7.next = 9;
+                    if (!shouldValidate) {
+                      _context6.next = 8;
+                      break;
+                    }
+
+                    _context6.next = 5;
+                    return findRecordErrors(records);
+
+                  case 5:
+                    _context6.t0 = _context6.sent;
+                    _context6.next = 9;
                     break;
-                  }
 
-                  _context7.next = 6;
-                  return findRecordErrors(records);
+                  case 8:
+                    _context6.t0 = [];
 
-                case 6:
-                  _context7.t0 = _context7.sent;
-                  _context7.next = 10;
-                  break;
-
-                case 9:
-                  _context7.t0 = [];
-
-                case 10:
-                  errors = _context7.t0;
-                  set({
-                    errors: errors,
-                    records: entries,
-                    index: Object.keys(entries)
-                  });
-
-                  if (errors.length == 0) {
-                    Object.entries(entries).forEach(function (_ref4) {
-                      var _ref5 = _slicedToArray(_ref4, 2),
-                          itemIndex = _ref5[0],
-                          importItem = _ref5[1];
-
-                      store().listeners.forEach(function (callback) {
-                        return callback(itemIndex, _objectSpread({}, importItem), "inserting");
-                      });
+                  case 9:
+                    errors = _context6.t0;
+                    set({
+                      errors: errors,
+                      records: entries,
+                      index: Object.keys(entries)
                     });
-                  }
 
-                  store().setStatus("idle");
-                  return _context7.abrupt("return", errors.length == 0);
+                    if (errors.length == 0) {
+                      Object.entries(entries).forEach(function (_ref6) {
+                        var _ref7 = _slicedToArray(_ref6, 2),
+                            itemIndex = _ref7[0],
+                            importItem = _ref7[1];
 
-                case 15:
-                case "end":
-                  return _context7.stop();
+                        store().listeners.forEach(function (callback) {
+                          return callback(itemIndex, _objectSpread({}, importItem), "inserting");
+                        });
+                      });
+                    }
+
+                    store().setStatus("idle");
+                    errors.length === 0 ? resolve() : reject();
+
+                  case 14:
+                  case "end":
+                    return _context6.stop();
+                }
               }
-            }
-          }, _callee7);
-        }));
+            }, _callee6);
+          }));
 
-        function _import(_x7) {
-          return _import2.apply(this, arguments);
-        }
-
-        return _import;
-      }(),
+          return function (_x6, _x7) {
+            return _ref4.apply(this, arguments);
+          };
+        }());
+      },
       clear: function clear() {
         store().setStatus("clearing");
         store()["import"]({});

@@ -108,7 +108,7 @@ export type Store<dataType> = {
   /**
    * update the workspace with an immer function
    */
-  updateWorkspace: (workspaceUpdate: (workspace: Draft<dataType>) => void) => void,
+  updateWorkspace: (workspaceUpdate: (workspace: Draft<dataType>) => void) => Promise<void>,
   /**
    * set the workspace directly (from serialized workspace)
    */
@@ -143,7 +143,7 @@ export type Store<dataType> = {
   /**
    * Import Records
    */
-  import: (records: Record<string, dataType>, validate?: boolean) => Promise<boolean>
+  import: (records: Record<string, dataType>, validate?: boolean) => Promise<void>
   /**
    * Export to serializable string
    */
