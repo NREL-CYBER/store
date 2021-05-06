@@ -1,5 +1,5 @@
 import { ErrorObject } from "ajv";
-import Validator from "validator";
+import Validator, { RootSchemaObject } from "validator";
 import { Draft } from "immer";
 export declare type StoreStatus = "warming-workspace" | "warming-validator" | "booting" | "idle" | "importing" | "exporting" | "inserting" | "removing" | "erroring" | "updating" | "workspacing" | "clearing" | "activating";
 export declare type StoreListener<DataType> = (itemIndex: string, item: Partial<DataType>, status: StoreStatus) => void;
@@ -78,7 +78,11 @@ export declare type Store<dataType> = {
     /**
      * Insert a data-item, optionally specify the identifier. uuid4 will be used by default
      */
-    insert: (dataItem: any, id?: string) => Promise<string>;
+    insert: (dataItem: dataType, id?: string) => Promise<string>;
+    /**
+     * Set value without validating
+     */
+    insert_and_skip_validatation: (dataItem: dataType, id: string) => void;
     /**
      * Insert a data-item, optionally specify the identifier. uuid4 will be used by default
      */
@@ -111,6 +115,11 @@ export declare type Store<dataType> = {
      * filter all string properties by query (perhaps a full fuzzy index in the future)
      */
     search: (query: string) => [string, dataType][];
+    /**
+     * save the schema from initialization so we don't have to wait for the validator to boot
+     * when we make a form
+     */
+    schema: RootSchemaObject;
     /**
      * filter items by predicate
      */

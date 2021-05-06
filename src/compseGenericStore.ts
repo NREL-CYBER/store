@@ -39,8 +39,9 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
     // Create the implementation of the store type now that we have the initial values prepared.
 
     return create((set, store) => ({
+        schema,
         workspace: undefined,
-        lazyLoadWorkspace: async () => {
+        lazyLoadWorkspace: () => {
             return new Promise(async (complete) => {
                 if (typeof store().workspace === "undefined") {
                     store().setStatus("warming-workspace");
@@ -64,7 +65,10 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
         },
         status,
         lazyLoadValidator: () => {
-            return new Promise<Validator<DataType>>((complete) => {
+            return new Promise<Validator<DataType>>((complete, reject) => {
+                if (store().status === "warming-validator") {
+                    reject(new Error("Can't warm a validator while it's loading, you have a race condition. Wait for the Validator to be loaded instead of trying to lazy load it twice"))
+                }
                 if (typeof store().validator !== "undefined") {
                     complete(store().validator!);
                 } else {
@@ -142,7 +146,21 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
                     reject(errors?.pop()?.message || collection + " item not valid!");
                 }
             })
-        }, update: (id, itemUpdate) => {
+        },
+        insert_and_skip_validatation: (dataToAdd, optionalItemIndex) => {
+            store().setStatus("inserting");
+            const itemIndex = optionalItemIndex ? optionalItemIndex : v4();
+            let index = [...store().index];
+            let records = { ...store().records };
+            records[itemIndex] = dataToAdd;
+            if (!index.includes(itemIndex))
+                index = [...index, itemIndex];
+            set({ index, records });
+            store().listeners.forEach(callback => callback(itemIndex, { ...dataToAdd }, "inserting"))
+            store().setStatus("idle")
+        }
+
+        , update: (id, itemUpdate) => {
             store().setStatus("updating");
             const newItem = produce<DataType>(store().retrieve(id), itemUpdate);
             return store().insert(newItem, id);
