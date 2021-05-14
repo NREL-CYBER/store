@@ -1,6 +1,6 @@
 {
   "name": "store",
-  "version": "1.4.5",
+  "version": "1.4.6",
   "description": "Frontend React Hook Cache for JSON Schema validated Data",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

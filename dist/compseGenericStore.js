@@ -234,7 +234,6 @@ var composeGenericStore = function composeGenericStore(create, options) {
                           errors: errors
                         });
                         store().setStatus("erroring");
-                        console.log(errors);
                         store().setStatus("idle");
                       }
 
@@ -260,9 +259,8 @@ var composeGenericStore = function composeGenericStore(create, options) {
 
         var index = _toConsumableArray(store().index);
 
-        var records = _objectSpread({}, store().records);
+        var records = _objectSpread(_objectSpread({}, store().records), {}, _defineProperty({}, itemIndex, dataToAdd));
 
-        records[itemIndex] = dataToAdd;
         if (!index.includes(itemIndex)) index = [].concat(_toConsumableArray(index), [itemIndex]);
         set({
           index: index,
@@ -364,6 +362,7 @@ var composeGenericStore = function composeGenericStore(create, options) {
       },
       "import": function _import(entries) {
         var shouldValidate = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+        var shouldNotify = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
         return new Promise( /*#__PURE__*/function () {
           var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(resolve, reject) {
             var findRecordErrors, errors;
@@ -429,7 +428,7 @@ var composeGenericStore = function composeGenericStore(create, options) {
                       index: Object.keys(entries)
                     });
 
-                    if (errors.length == 0) {
+                    if (errors.length == 0 && shouldNotify) {
                       Object.entries(entries).forEach(function (_ref6) {
                         var _ref7 = _slicedToArray(_ref6, 2),
                             itemIndex = _ref7[0],

@@ -140,7 +140,6 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
                     if (errors) {
                         set({ errors })
                         store().setStatus("erroring")
-                        console.log(errors);
                         store().setStatus("idle");
                     }
                     reject(errors?.pop()?.message || collection + " item not valid!");
@@ -151,8 +150,7 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
             store().setStatus("inserting");
             const itemIndex = optionalItemIndex ? optionalItemIndex : v4();
             let index = [...store().index];
-            let records = { ...store().records };
-            records[itemIndex] = dataToAdd;
+            const records = { ...store().records, [itemIndex]: dataToAdd };
             if (!index.includes(itemIndex))
                 index = [...index, itemIndex];
             set({ index, records });
@@ -218,7 +216,7 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
             const { active } = store();
             return active ? store().retrieve(active) : undefined;
         },
-        import: (entries, shouldValidate = true) => {
+        import: (entries, shouldValidate = true, shouldNotify = true) => {
             return new Promise(async (resolve, reject) => {
                 store().setStatus("importing");
                 const findRecordErrors = async (entries: Record<string, DataType>) => {
@@ -232,7 +230,7 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
                 }
                 const errors: ErrorObject<string, Record<string, any>>[] = shouldValidate ? await findRecordErrors(records) : [];
                 set({ errors, records: entries, index: Object.keys(entries) });
-                if (errors.length == 0) {
+                if (errors.length == 0 && shouldNotify) {
                     Object.entries(entries).forEach(([itemIndex, importItem]) => {
                         store().listeners.forEach(callback => callback(itemIndex, { ...importItem }, "inserting"))
                     })
