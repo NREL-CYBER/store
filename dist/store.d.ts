@@ -144,7 +144,7 @@ export declare type Store<dataType> = {
     /**
      * Import Records
      */
-    import: (records: Record<string, dataType>, validate?: boolean) => Promise<void>;
+    import: (records: Record<string, dataType>, validate?: boolean, notify?: boolean) => Promise<void>;
     /**
      * Export to serializable string
      */
