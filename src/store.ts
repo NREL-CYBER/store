@@ -4,7 +4,7 @@ import Validator, { RootSchemaObject } from "validator";
 import { Draft } from "immer";
 
 export type StoreStatus = "warming-workspace" | "warming-validator" |
-  "booting" | "idle" | "importing" | "exporting" | "inserting" |
+  "booting" | "idle" | "fetching" | "importing" | "exporting" | "inserting" |
   "removing" | "erroring" | "updating" | "workspacing" | "clearing" | "activating";
 
 export type StoreListener<DataType> = (itemIndex: string, item: Partial<DataType>, status: StoreStatus) => void;
@@ -76,11 +76,13 @@ export type Store<dataType> = {
    */
   activeInstance: () => dataType | undefined
   /**
-   * Get an item by id
-   * this is for use with items that are known to exist 
-   * because it is included in the index
+   * Get an item by id that's already been cached 
    */
-  retrieve: (id: string) => (dataType)
+  retrieve: (id: string) => dataType | undefined
+  /**
+   * Get an item that may not already be cached asynchronously
+   */
+  fetch: (id: string) => Promise<dataType>
   /**
    * Insert a data-item, optionally specify the identifier. uuid4 will be used by default
    */

@@ -88,17 +88,32 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
             .filterIndex(x => Object.values(x).join("").toLowerCase()
                 .includes(query.toLowerCase()))
             .map(key => (
-                [key, store().retrieve(key)]
+                [key, store().retrieve(key)!]
             )),
         filter: (predicate: ((e: DataType) => boolean)) => store()
             .filterIndex(predicate).map(
-                matchingItemIndex => store().retrieve(matchingItemIndex)
+                matchingItemIndex => store().retrieve(matchingItemIndex)!
             ),
+        fetch: (id: string) => {
+            store().setStatus("fetching")
+            return new Promise<DataType>((resolve, reject) => {
+                const cached = store().retrieve(id)
+                store().setStatus("idle");
+                store().listeners.forEach((listener) => {
+                    listener(id, { ...cached }, "fetching");
+                })
+                if (cached) {
+                    resolve(cached);
+                } else {
+                    reject()
+                }
+            });
+        },
         filterIndex: (predicate: ((e: DataType) => boolean)) => store()
             .index
             .filter(
                 itemIndex =>
-                    predicate(store().retrieve(itemIndex))
+                    predicate(store().retrieve(itemIndex)!)
             ),
 
         remove: (idToRemove) => {
