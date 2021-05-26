@@ -3735,9 +3735,9 @@ optionator@^0.8.1:
     type-check "~0.3.2"
     word-wrap "~1.2.3"
 
-"oscal@git://github.com/NREL-CYBER/oscal.git":
-  version "1.7.3"
-  resolved "git://github.com/NREL-CYBER/oscal.git#58dfe99e5fc8e80e1499a9e8b2a2c2b64e736781"
+"oscal@git+ssh://git@github.com/NREL-CYBER/oscal.git":
+  version "1.7.4"
+  resolved "git+ssh://git@github.com/NREL-CYBER/oscal.git#c8b301d97fd6d253d77b7c48211d1f5ea94e3db4"
   dependencies:
     "@babel/cli" "^7.14.3"
     "@babel/core" "^7.14.3"
@@ -4724,9 +4724,9 @@ validate-npm-package-license@^3.0.1:
     spdx-correct "^3.0.0"
     spdx-expression-parse "^3.0.0"
 
-"validator@git://github.com/NREL-CYBER/validator.git":
+"validator@git+ssh://git@github.com/NREL-CYBER/validator.git":
   version "4.3.6"
-  resolved "git://github.com/NREL-CYBER/validator.git#04df48a3f0dd199d1553154df2b52d7a0925f6e9"
+  resolved "git+ssh://git@github.com/NREL-CYBER/validator.git#04df48a3f0dd199d1553154df2b52d7a0925f6e9"
   dependencies:
     "@types/uuid" "^8.3.0"
     ajv "^7.2.1"
