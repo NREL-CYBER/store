@@ -78,7 +78,7 @@ export type Store<dataType> = {
   /**
    * Get an item by id that's already been cached 
    */
-  retrieve: (id: string) => dataType | undefined
+  retrieve: (id: string) => dataType 
   /**
    * Get an item that may not already be cached asynchronously
    */

@@ -157,6 +157,22 @@ var composeGenericStore = function composeGenericStore(create, options) {
           return store().retrieve(matchingItemIndex);
         });
       },
+      fetch: function fetch(id) {
+        store().setStatus("fetching");
+        return new Promise(function (resolve, reject) {
+          var cached = store().retrieve(id);
+          store().setStatus("idle");
+          store().listeners.forEach(function (listener) {
+            listener(id, _objectSpread({}, cached), "fetching");
+          });
+
+          if (cached) {
+            resolve(cached);
+          } else {
+            reject();
+          }
+        });
+      },
       filterIndex: function filterIndex(predicate) {
         return store().index.filter(function (itemIndex) {
           return predicate(store().retrieve(itemIndex));
