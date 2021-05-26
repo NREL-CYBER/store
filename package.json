@@ -1,6 +1,6 @@
 {
   "name": "store",
-  "version": "1.4.7",
+  "version": "1.4.8",
   "description": "Frontend React Hook Cache for JSON Schema validated Data",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -18,14 +18,16 @@
     "validator": "git://github.com/NREL-CYBER/validator.git",
     "zustand": "^3.3.3"
   },
+  "peerDependencies": {
+    "react": "^17.0.2"
+  },
   "devDependencies": {
-    "@babel/cli": "^7.12.10",
-    "@babel/core": "^7.12.10",
+    "@babel/cli": "^7.14.3",
+    "@babel/core": "^7.14.3",
+    "@babel/preset-env": "^7.14.2",
+    "@babel/preset-typescript": "^7.13.0",
     "@babel/plugin-transform-runtime": "^7.13.10",
-    "@babel/preset-env": "^7.12.11",
-    "@babel/preset-typescript": "^7.12.7",
     "@types/jest": "^26.0.23 ",
-    "babel-plugin-transform-class-properties": "^6.24.1",
     "jest": "^26.6.2",
     "oscal": "git://github.com/NREL-CYBER/oscal.git",
     "ts-jest": "^26.4.4",
