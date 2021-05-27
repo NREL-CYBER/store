@@ -1,7 +1,7 @@
 # store
 Frontend Store powered by json schemas and zustand
 
-    yarn add git://github.com/NREL-CYBER/store.git
+    yarn add git+ssh://github.com/NREL-CYBER/store.git
 
 # tests
     RUNS  tests/groceries-store.test.ts
