@@ -4730,8 +4730,8 @@ validate-npm-package-license@^3.0.1:
     spdx-expression-parse "^3.0.0"
 
 "validator@git+ssh://git@github.com/NREL-CYBER/validator.git":
-  version "4.3.6"
-  resolved "git+ssh://git@github.com/NREL-CYBER/validator.git#d573166d72642e50d3d2746bbfcb6d4effbd67aa"
+  version "4.3.8"
+  resolved "git+ssh://git@github.com/NREL-CYBER/validator.git#8642b0234a40f700c06445a8c09753136c2d6aea"
   dependencies:
     "@types/uuid" "^8.3.0"
     ajv "^7.2.1"

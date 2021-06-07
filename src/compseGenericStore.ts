@@ -4,6 +4,7 @@ import { v4 } from "uuid";
 import Validator, { RootSchemaObject } from "validator";
 import { StateCreator, UseStore } from "zustand";
 import { Store, StoreListener, StoreStatus } from "./store";
+import { composeStoreOptions } from ".";
 
 /**
  * Create an indexed storage & validation for vanilla TS
@@ -12,16 +13,9 @@ import { Store, StoreListener, StoreStatus } from "./store";
  * @param initial The initial value of the store
  */
 
-interface composeStoreProps<DataType> {
-    schema: RootSchemaObject,
-    initial?: {},
-    definition?: string
-    validator?: Validator<DataType>
-    vanilla?: boolean
-}
 
-const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCreator<Store<DataType>>) => UseStore<Store<DataType>>, options: composeStoreProps<DataType>) => {
-    const { schema, definition, initial } = options;
+const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCreator<Store<DataType>>) => UseStore<Store<DataType>>, options: composeStoreOptions<DataType>) => {
+    const { schema, definition, initial, workspaceGenerationMap } = options;
     const validator = options.validator;
     const collection = definition ? definition : schema.$id ? schema.$id : "errorCollection"
     if (collection === "errorCollection") {
@@ -73,9 +67,7 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
                     complete(store().validator!);
                 } else {
                     store().setStatus("warming-validator");
-                    const validator = typeof definition === "string" ?
-                        new Validator<DataType>(schema, definition) :
-                        new Validator<DataType>(schema);
+                    const validator = new Validator<DataType>(schema, definition, workspaceGenerationMap);
                     set({ validator });
                     store().setStatus("idle");
                     complete(validator);

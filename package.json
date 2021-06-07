@@ -1,6 +1,6 @@
 {
   "name": "store",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "Frontend React Hook Cache for JSON Schema validated Data",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -36,6 +36,7 @@
   },
   "scripts": {
     "build": "tsc --emitDeclarationOnly  && babel src --out-dir dist --extensions .ts,.tsx",
+    "update": "yarn add git+ssh://git@github.com/NREL-CYBER/validator.git",
     "test": "jest",
     "docs": "typedoc --out docs src/index.ts"
   },

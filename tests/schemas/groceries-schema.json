@@ -17,6 +17,10 @@
             }
         }
     },
+    "required": [
+        "fruits",
+        "vegetables"
+    ],
     "definitions": {
         "veggie": {
             "type": "object",

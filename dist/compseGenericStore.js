@@ -43,10 +43,17 @@ function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 
+/**
+ * Create an indexed storage & validation for vanilla TS
+ * @param schema JSON Schema7 object for validating incoming data
+ * @param defininition name of the collection (singular) should match json schema (if unspecified, entire schema is considered a definition)
+ * @param initial The initial value of the store
+ */
 var composeGenericStore = function composeGenericStore(create, options) {
   var schema = options.schema,
       definition = options.definition,
-      initial = options.initial;
+      initial = options.initial,
+      workspaceGenerationMap = options.workspaceGenerationMap;
   var validator = options.validator;
   var collection = definition ? definition : schema.$id ? schema.$id : "errorCollection";
 
@@ -134,7 +141,7 @@ var composeGenericStore = function composeGenericStore(create, options) {
           } else {
             store().setStatus("warming-validator");
 
-            var _validator2 = typeof definition === "string" ? new _validator3["default"](schema, definition) : new _validator3["default"](schema);
+            var _validator2 = new _validator3["default"](schema, definition, workspaceGenerationMap);
 
             set({
               validator: _validator2
