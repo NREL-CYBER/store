@@ -210,7 +210,8 @@ var composeGenericStore = function composeGenericStore(create, options) {
         store().setStatus("idle");
         return true;
       },
-      insert: function insert(dataToAdd, optionalItemIndex, validate) {
+      insert: function insert(dataToAdd, optionalItemIndex) {
+        var validate = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
         return new Promise( /*#__PURE__*/function () {
           var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(resolve, reject) {
             var itemIndex, index, validator, valid, _records, _errors$pop, errors;

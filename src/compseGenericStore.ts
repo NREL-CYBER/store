@@ -134,7 +134,7 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
             store().setStatus("idle");
             return true;
         },
-        insert: (dataToAdd, optionalItemIndex, validate) => {
+        insert: (dataToAdd, optionalItemIndex, validate = true) => {
             return new Promise<string>(async (resolve, reject) => {
                 store().setStatus("inserting");
                 const itemIndex = optionalItemIndex ? optionalItemIndex : v4();
