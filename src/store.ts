@@ -78,7 +78,7 @@ export type Store<dataType> = {
   /**
    * Get an item by id that's already been cached 
    */
-  retrieve: (id: string) => dataType 
+  retrieve: (id: string) => dataType
   /**
    * Get an item that may not already be cached asynchronously
    */
@@ -86,11 +86,7 @@ export type Store<dataType> = {
   /**
    * Insert a data-item, optionally specify the identifier. uuid4 will be used by default
    */
-  insert: (dataItem: dataType, id?: string) => Promise<string>,
-  /**
-   * Set value without validating
-   */
-  insert_and_skip_validatation: (dataItem: dataType, id: string) => void,
+  insert: (dataItem: dataType, id?: string, validate?: boolean) => Promise<string>,
   /**
    * Insert a data-item, optionally specify the identifier. uuid4 will be used by default
    */

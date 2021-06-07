@@ -134,13 +134,13 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
             store().setStatus("idle");
             return true;
         },
-        insert: (dataToAdd, optionalItemIndex) => {
+        insert: (dataToAdd, optionalItemIndex, validate) => {
             return new Promise<string>(async (resolve, reject) => {
                 store().setStatus("inserting");
                 const itemIndex = optionalItemIndex ? optionalItemIndex : v4();
                 let index = [...store().index];
                 const validator = await store().lazyLoadValidator();
-                const valid = validator.validate(dataToAdd);
+                const valid = validate ? validator.validate(dataToAdd) : true;
                 if (valid) {
                     let records = { ...store().records };
                     records[itemIndex] = dataToAdd;
@@ -160,19 +160,7 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
                     reject(errors?.pop()?.message || collection + " item not valid!");
                 }
             })
-        },
-        insert_and_skip_validatation: (dataToAdd, optionalItemIndex) => {
-            store().setStatus("inserting");
-            const itemIndex = optionalItemIndex ? optionalItemIndex : v4();
-            let index = [...store().index];
-            const records = { ...store().records, [itemIndex]: dataToAdd };
-            if (!index.includes(itemIndex))
-                index = [...index, itemIndex];
-            set({ index, records });
-            store().listeners.forEach(callback => callback(itemIndex, { ...dataToAdd }, "inserting"))
-            store().setStatus("idle")
         }
-
         , update: (id, itemUpdate) => {
             store().setStatus("updating");
             const newItem = produce<DataType>(store().retrieve(id), itemUpdate);

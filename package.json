@@ -1,6 +1,6 @@
 {
   "name": "store",
-  "version": "1.4.8",
+  "version": "1.4.9",
   "description": "Frontend React Hook Cache for JSON Schema validated Data",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -12,6 +12,7 @@
     "@types/uuid": "^8.3.0",
     "ajv": "^7.2.1",
     "ajv-formats": "^1.5.1",
+    "dexie": "^3.0.3",
     "immer": "^8.0.2",
     "ts-node": "^9.1.1",
     "uuid": "^8.3.2",
@@ -24,9 +25,9 @@
   "devDependencies": {
     "@babel/cli": "^7.14.3",
     "@babel/core": "^7.14.3",
+    "@babel/plugin-transform-runtime": "^7.13.10",
     "@babel/preset-env": "^7.14.2",
     "@babel/preset-typescript": "^7.13.0",
-    "@babel/plugin-transform-runtime": "^7.13.10",
     "@types/jest": "^26.0.23 ",
     "jest": "^26.6.2",
     "oscal": "git+ssh://git@github.com/NREL-CYBER/oscal.git",
@@ -46,7 +47,10 @@
     "validator",
     "jsonschema"
   ],
+  "resolutions": {
+    "ws": "7.4.6"
+  },
   "author": "Cyber Security Team",
-  "license": "MIT",
+  "license": "ISC",
   "type": "module"
 }

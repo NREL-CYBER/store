@@ -210,7 +210,7 @@ var composeGenericStore = function composeGenericStore(create, options) {
         store().setStatus("idle");
         return true;
       },
-      insert: function insert(dataToAdd, optionalItemIndex) {
+      insert: function insert(dataToAdd, optionalItemIndex, validate) {
         return new Promise( /*#__PURE__*/function () {
           var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(resolve, reject) {
             var itemIndex, index, validator, valid, _records, _errors$pop, errors;
@@ -227,7 +227,7 @@ var composeGenericStore = function composeGenericStore(create, options) {
 
                   case 5:
                     validator = _context2.sent;
-                    valid = validator.validate(dataToAdd);
+                    valid = validate ? validator.validate(dataToAdd) : true;
 
                     if (valid) {
                       _records = _objectSpread({}, store().records);
@@ -268,24 +268,6 @@ var composeGenericStore = function composeGenericStore(create, options) {
             return _ref2.apply(this, arguments);
           };
         }());
-      },
-      insert_and_skip_validatation: function insert_and_skip_validatation(dataToAdd, optionalItemIndex) {
-        store().setStatus("inserting");
-        var itemIndex = optionalItemIndex ? optionalItemIndex : (0, _uuid.v4)();
-
-        var index = _toConsumableArray(store().index);
-
-        var records = _objectSpread(_objectSpread({}, store().records), {}, _defineProperty({}, itemIndex, dataToAdd));
-
-        if (!index.includes(itemIndex)) index = [].concat(_toConsumableArray(index), [itemIndex]);
-        set({
-          index: index,
-          records: records
-        });
-        store().listeners.forEach(function (callback) {
-          return callback(itemIndex, _objectSpread({}, dataToAdd), "inserting");
-        });
-        store().setStatus("idle");
       },
       update: function update(id, itemUpdate) {
         store().setStatus("updating");
