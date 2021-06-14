@@ -14,5 +14,6 @@ export interface composeStoreOptions<DataType> {
     definition?: string
     validator?: Validator<DataType>
     vanilla?: boolean
+    indexes?: string[]
     workspaceGenerationMap?: Record<string, () => any>
 }
