@@ -9,7 +9,7 @@ var _immer = _interopRequireDefault(require("immer"));
 
 var _uuid = require("uuid");
 
-var _validator3 = _interopRequireDefault(require("validator"));
+var _validator4 = _interopRequireDefault(require("validator"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -147,7 +147,7 @@ var composeGenericStore = function composeGenericStore(create, options) {
           } else {
             store().setStatus("warming-validator");
 
-            var _validator2 = new _validator3["default"](schema, definition, {
+            var _validator2 = new _validator4["default"](schema, definition, {
               uuid: _uuid.v4
             });
 
@@ -251,7 +251,7 @@ var composeGenericStore = function composeGenericStore(create, options) {
         var validate = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
         return new Promise( /*#__PURE__*/function () {
           var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(resolve, reject) {
-            var itemIndex, index, validator, valid, _records, _errors$pop, errors;
+            var itemIndex, index, _store, lazyLoadValidator, valid, _records, _errors$pop, _validator3, errors;
 
             return regeneratorRuntime.wrap(function _callee2$(_context2) {
               while (1) {
@@ -260,7 +260,7 @@ var composeGenericStore = function composeGenericStore(create, options) {
                     store().setStatus("inserting");
                     itemIndex = optionalItemIndex ? optionalItemIndex : (0, _uuid.v4)();
                     index = _toConsumableArray(store().index);
-                    validator = store().lazyLoadValidator();
+                    _store = store(), lazyLoadValidator = _store.lazyLoadValidator;
 
                     if (!validate) {
                       _context2.next = 10;
@@ -268,7 +268,7 @@ var composeGenericStore = function composeGenericStore(create, options) {
                     }
 
                     _context2.next = 7;
-                    return validator;
+                    return lazyLoadValidator();
 
                   case 7:
                     _context2.t0 = _context2.sent.validate(dataToAdd);
@@ -299,15 +299,19 @@ var composeGenericStore = function composeGenericStore(create, options) {
                     store().setStatus("idle");
                     console.log("innserted");
                     resolve(itemIndex);
-                    _context2.next = 28;
+                    _context2.next = 30;
                     break;
 
                   case 23:
                     _context2.next = 25;
-                    return validator;
+                    return lazyLoadValidator();
 
                   case 25:
-                    errors = _context2.sent.validate.errors;
+                    _validator3 = _context2.sent;
+
+                    _validator3.validate(dataToAdd);
+
+                    errors = _validator3.validate.errors;
 
                     if (errors) {
                       set({
@@ -319,7 +323,7 @@ var composeGenericStore = function composeGenericStore(create, options) {
 
                     reject((errors === null || errors === void 0 ? void 0 : (_errors$pop = errors.pop()) === null || _errors$pop === void 0 ? void 0 : _errors$pop.message) || collection + " item not valid!");
 
-                  case 28:
+                  case 30:
                   case "end":
                     return _context2.stop();
                 }
@@ -416,8 +420,8 @@ var composeGenericStore = function composeGenericStore(create, options) {
         });
       },
       activeInstance: function activeInstance() {
-        var _store = store(),
-            active = _store.active;
+        var _store2 = store(),
+            active = _store2.active;
 
         return active ? store().retrieve(active) : undefined;
       },

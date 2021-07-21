@@ -158,8 +158,8 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
                 store().setStatus("inserting");
                 const itemIndex = optionalItemIndex ? optionalItemIndex : v4();
                 let index = [...store().index];
-                const validator = store().lazyLoadValidator();
-                const valid = validate ? (await validator).validate(dataToAdd) : true;
+                const { lazyLoadValidator } = store();
+                const valid = validate ? (await lazyLoadValidator()).validate(dataToAdd) : true;
                 if (valid) {
                     let records = { ...store().records };
                     records[itemIndex] = dataToAdd;
@@ -168,10 +168,11 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
                     set({ index, records });
                     store().listeners.forEach(callback => callback(itemIndex, { ...dataToAdd }, "inserting"))
                     store().setStatus("idle")
-                    console.log("innserted");
                     resolve(itemIndex);
                 } else {
-                    const errors = (await validator).validate.errors;
+                    const validator = (await lazyLoadValidator())
+                    validator.validate(dataToAdd)
+                    const errors = validator.validate.errors;
                     if (errors) {
                         set({ errors })
                         store().setStatus("erroring")
