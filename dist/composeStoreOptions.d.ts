@@ -5,11 +5,16 @@
  * @param initial The initial value of the store
  */
 import Validator, { RootSchemaObject } from "validator";
+export interface StoreIndex {
+    name: string;
+    keypath: string | string[];
+}
 export interface composeStoreOptions<DataType> {
     schema: RootSchemaObject;
     initial?: {};
     definition?: string;
     validator?: Validator<DataType>;
     vanilla?: boolean;
-    workspaceGenerationMap?: Record<string, () => any>;
+    indexes?: StoreIndex[];
+    workspace?: any;
 }

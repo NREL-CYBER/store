@@ -5,6 +5,8 @@
         "moduleResolution": "node",
         "target": "es5",
         "lib": [
+            "ES2015",
+            "ES2016",
             "ESNext"
         ],
         "esModuleInterop": true,

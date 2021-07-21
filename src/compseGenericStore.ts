@@ -1,10 +1,10 @@
 import { ErrorObject } from "ajv";
 import produce from "immer";
 import { v4 } from "uuid";
-import Validator, { RootSchemaObject } from "validator";
+import Validator from "validator";
 import { StateCreator, UseStore } from "zustand";
-import { Store, StoreListener, StoreStatus } from "./store";
 import { composeStoreOptions } from ".";
+import { Store, StoreListener, StoreStatus } from "./store";
 
 /**
  * Create an indexed storage & validation for vanilla TS
@@ -15,7 +15,7 @@ import { composeStoreOptions } from ".";
 
 
 const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCreator<Store<DataType>>) => UseStore<Store<DataType>>, options: composeStoreOptions<DataType>) => {
-    const { schema, definition, initial, workspaceGenerationMap } = options;
+    const { schema, definition, initial, workspace, indexes } = options;
     const validator = options.validator;
     const collection = definition ? definition : schema.$id ? schema.$id : "errorCollection"
     if (collection === "errorCollection") {
@@ -29,12 +29,15 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
 
     const status: StoreStatus = "booting"
 
-
+    // const openDB = IndexDBService.please().open(namespace, version, (db) => {
+    //     indexes?.forEach(({ name, keypath }) => {
+    //         db.createIndex(name, keypath)
+    //     })
+    // });
     // Create the implementation of the store type now that we have the initial values prepared.
-
     return create((set, store) => ({
         schema,
-        workspace: undefined,
+        workspace,
         lazyLoadWorkspace: () => {
             return new Promise(async (complete) => {
                 if (typeof store().workspace === "undefined") {
@@ -67,7 +70,7 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
                     complete(store().validator!);
                 } else {
                     store().setStatus("warming-validator");
-                    const validator = new Validator<DataType>(schema, definition, workspaceGenerationMap);
+                    const validator = new Validator<DataType>(schema, definition, { uuid: v4 });
                     set({ validator });
                     store().setStatus("idle");
                     complete(validator);
@@ -75,7 +78,26 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
             }
             )
         },
-        listeners: [],
+        listeners: [
+            // (id, item, status) => {
+            //     switch (status) {
+            //         case "clearing":
+            //             break;
+            //         case "inserting":
+            //             openDB.then((db) => {
+            //                 db.put(collection, item, id)
+            //             })
+            //             break;
+            //         case "removing":
+            //             openDB.then((db) => {
+            //                 db.delete(collection, id)
+            //             })
+            //             break;
+            //         default:
+            //             break;
+            //     }
+            // }
+        ],
         search: (query: string) => store()
             .filterIndex(x => Object.values(x).join("").toLowerCase()
                 .includes(query.toLowerCase()))
@@ -88,15 +110,20 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
             ),
         fetch: (id: string) => {
             store().setStatus("fetching")
+            throw (Error("Not IMplemented"));
             return new Promise<DataType>((resolve, reject) => {
                 const cached = store().retrieve(id)
-                store().setStatus("idle");
                 store().listeners.forEach((listener) => {
                     listener(id, { ...cached }, "fetching");
                 })
+                if (cached)
+                    store().setStatus("idle");
                 if (cached) {
                     resolve(cached);
                 } else {
+                    // openDB.then((db) => {
+                    // db.get(collection, id)
+                    // })
                     reject()
                 }
             });
@@ -126,13 +153,13 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
             store().setStatus("idle");
             return true;
         },
-        insert: (dataToAdd, optionalItemIndex, validate = true) => {
+        insert: (dataToAdd, optionalItemIndex, validate = false) => {
             return new Promise<string>(async (resolve, reject) => {
                 store().setStatus("inserting");
                 const itemIndex = optionalItemIndex ? optionalItemIndex : v4();
                 let index = [...store().index];
-                const validator = await store().lazyLoadValidator();
-                const valid = validate ? validator.validate(dataToAdd) : true;
+                const validator = store().lazyLoadValidator();
+                const valid = validate ? (await validator).validate(dataToAdd) : true;
                 if (valid) {
                     let records = { ...store().records };
                     records[itemIndex] = dataToAdd;
@@ -141,9 +168,10 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
                     set({ index, records });
                     store().listeners.forEach(callback => callback(itemIndex, { ...dataToAdd }, "inserting"))
                     store().setStatus("idle")
+                    console.log("innserted");
                     resolve(itemIndex);
                 } else {
-                    const errors = validator.validate.errors;
+                    const errors = (await validator).validate.errors;
                     if (errors) {
                         set({ errors })
                         store().setStatus("erroring")

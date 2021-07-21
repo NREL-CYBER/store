@@ -1,6 +1,6 @@
 import { StateCreator, UseStore } from "zustand";
-import { Store } from "./store";
 import { composeStoreOptions } from ".";
+import { Store } from "./store";
 /**
  * Create an indexed storage & validation for vanilla TS
  * @param schema JSON Schema7 object for validating incoming data

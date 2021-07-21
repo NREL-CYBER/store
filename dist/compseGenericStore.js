@@ -53,7 +53,8 @@ var composeGenericStore = function composeGenericStore(create, options) {
   var schema = options.schema,
       definition = options.definition,
       initial = options.initial,
-      workspaceGenerationMap = options.workspaceGenerationMap;
+      workspace = options.workspace,
+      indexes = options.indexes;
   var validator = options.validator;
   var collection = definition ? definition : schema.$id ? schema.$id : "errorCollection";
 
@@ -67,16 +68,21 @@ var composeGenericStore = function composeGenericStore(create, options) {
 
   var records = initial ? initial : {};
   var index = initial ? Object.keys(initial) : [];
-  var status = "booting"; // Create the implementation of the store type now that we have the initial values prepared.
+  var status = "booting"; // const openDB = IndexDBService.please().open(namespace, version, (db) => {
+  //     indexes?.forEach(({ name, keypath }) => {
+  //         db.createIndex(name, keypath)
+  //     })
+  // });
+  // Create the implementation of the store type now that we have the initial values prepared.
 
   return create(function (set, store) {
     return {
       schema: schema,
-      workspace: undefined,
+      workspace: workspace,
       lazyLoadWorkspace: function lazyLoadWorkspace() {
         return new Promise( /*#__PURE__*/function () {
           var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(complete) {
-            var _validator, workspace;
+            var _validator, _workspace;
 
             return regeneratorRuntime.wrap(function _callee$(_context) {
               while (1) {
@@ -93,11 +99,11 @@ var composeGenericStore = function composeGenericStore(create, options) {
 
                   case 4:
                     _validator = _context.sent;
-                    workspace = _validator.makeWorkspace();
+                    _workspace = _validator.makeWorkspace();
                     set({
-                      workspace: workspace
+                      workspace: _workspace
                     });
-                    complete(workspace);
+                    complete(_workspace);
                     _context.next = 11;
                     break;
 
@@ -141,7 +147,9 @@ var composeGenericStore = function composeGenericStore(create, options) {
           } else {
             store().setStatus("warming-validator");
 
-            var _validator2 = new _validator3["default"](schema, definition, workspaceGenerationMap);
+            var _validator2 = new _validator3["default"](schema, definition, {
+              uuid: _uuid.v4
+            });
 
             set({
               validator: _validator2
@@ -151,7 +159,25 @@ var composeGenericStore = function composeGenericStore(create, options) {
           }
         });
       },
-      listeners: [],
+      listeners: [// (id, item, status) => {
+        //     switch (status) {
+        //         case "clearing":
+        //             break;
+        //         case "inserting":
+        //             openDB.then((db) => {
+        //                 db.put(collection, item, id)
+        //             })
+        //             break;
+        //         case "removing":
+        //             openDB.then((db) => {
+        //                 db.delete(collection, id)
+        //             })
+        //             break;
+        //         default:
+        //             break;
+        //     }
+        // }
+      ],
       search: function search(query) {
         return store().filterIndex(function (x) {
           return Object.values(x).join("").toLowerCase().includes(query.toLowerCase());
@@ -166,16 +192,20 @@ var composeGenericStore = function composeGenericStore(create, options) {
       },
       fetch: function fetch(id) {
         store().setStatus("fetching");
+        throw Error("Not IMplemented");
         return new Promise(function (resolve, reject) {
           var cached = store().retrieve(id);
-          store().setStatus("idle");
           store().listeners.forEach(function (listener) {
             listener(id, _objectSpread({}, cached), "fetching");
           });
+          if (cached) store().setStatus("idle");
 
           if (cached) {
             resolve(cached);
           } else {
+            // openDB.then((db) => {
+            // db.get(collection, id)
+            // })
             reject();
           }
         });
@@ -218,7 +248,7 @@ var composeGenericStore = function composeGenericStore(create, options) {
         return true;
       },
       insert: function insert(dataToAdd, optionalItemIndex) {
-        var validate = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
+        var validate = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
         return new Promise( /*#__PURE__*/function () {
           var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(resolve, reject) {
             var itemIndex, index, validator, valid, _records, _errors$pop, errors;
@@ -230,41 +260,66 @@ var composeGenericStore = function composeGenericStore(create, options) {
                     store().setStatus("inserting");
                     itemIndex = optionalItemIndex ? optionalItemIndex : (0, _uuid.v4)();
                     index = _toConsumableArray(store().index);
-                    _context2.next = 5;
-                    return store().lazyLoadValidator();
+                    validator = store().lazyLoadValidator();
 
-                  case 5:
-                    validator = _context2.sent;
-                    valid = validate ? validator.validate(dataToAdd) : true;
-
-                    if (valid) {
-                      _records = _objectSpread({}, store().records);
-                      _records[itemIndex] = dataToAdd;
-                      if (!index.includes(itemIndex)) index = [].concat(_toConsumableArray(index), [itemIndex]);
-                      set({
-                        index: index,
-                        records: _records
-                      });
-                      store().listeners.forEach(function (callback) {
-                        return callback(itemIndex, _objectSpread({}, dataToAdd), "inserting");
-                      });
-                      store().setStatus("idle");
-                      resolve(itemIndex);
-                    } else {
-                      errors = validator.validate.errors;
-
-                      if (errors) {
-                        set({
-                          errors: errors
-                        });
-                        store().setStatus("erroring");
-                        store().setStatus("idle");
-                      }
-
-                      reject((errors === null || errors === void 0 ? void 0 : (_errors$pop = errors.pop()) === null || _errors$pop === void 0 ? void 0 : _errors$pop.message) || collection + " item not valid!");
+                    if (!validate) {
+                      _context2.next = 10;
+                      break;
                     }
 
-                  case 8:
+                    _context2.next = 7;
+                    return validator;
+
+                  case 7:
+                    _context2.t0 = _context2.sent.validate(dataToAdd);
+                    _context2.next = 11;
+                    break;
+
+                  case 10:
+                    _context2.t0 = true;
+
+                  case 11:
+                    valid = _context2.t0;
+
+                    if (!valid) {
+                      _context2.next = 23;
+                      break;
+                    }
+
+                    _records = _objectSpread({}, store().records);
+                    _records[itemIndex] = dataToAdd;
+                    if (!index.includes(itemIndex)) index = [].concat(_toConsumableArray(index), [itemIndex]);
+                    set({
+                      index: index,
+                      records: _records
+                    });
+                    store().listeners.forEach(function (callback) {
+                      return callback(itemIndex, _objectSpread({}, dataToAdd), "inserting");
+                    });
+                    store().setStatus("idle");
+                    console.log("innserted");
+                    resolve(itemIndex);
+                    _context2.next = 28;
+                    break;
+
+                  case 23:
+                    _context2.next = 25;
+                    return validator;
+
+                  case 25:
+                    errors = _context2.sent.validate.errors;
+
+                    if (errors) {
+                      set({
+                        errors: errors
+                      });
+                      store().setStatus("erroring");
+                      store().setStatus("idle");
+                    }
+
+                    reject((errors === null || errors === void 0 ? void 0 : (_errors$pop = errors.pop()) === null || _errors$pop === void 0 ? void 0 : _errors$pop.message) || collection + " item not valid!");
+
+                  case 28:
                   case "end":
                     return _context2.stop();
                 }
