@@ -88,7 +88,7 @@ var composeGenericStore = function composeGenericStore(create, options) {
               while (1) {
                 switch (_context.prev = _context.next) {
                   case 0:
-                    if (!(typeof store().workspace === "undefined")) {
+                    if (!(typeof store().workspace === "undefined" && typeof workspace === "undefined")) {
                       _context.next = 10;
                       break;
                     }
@@ -108,7 +108,7 @@ var composeGenericStore = function composeGenericStore(create, options) {
                     break;
 
                   case 10:
-                    complete(store().workspace);
+                    complete(store().workspace || workspace);
 
                   case 11:
                   case "end":
@@ -282,7 +282,7 @@ var composeGenericStore = function composeGenericStore(create, options) {
                     valid = _context2.t0;
 
                     if (!valid) {
-                      _context2.next = 23;
+                      _context2.next = 22;
                       break;
                     }
 
@@ -297,16 +297,15 @@ var composeGenericStore = function composeGenericStore(create, options) {
                       return callback(itemIndex, _objectSpread({}, dataToAdd), "inserting");
                     });
                     store().setStatus("idle");
-                    console.log("innserted");
                     resolve(itemIndex);
-                    _context2.next = 30;
+                    _context2.next = 29;
                     break;
 
-                  case 23:
-                    _context2.next = 25;
+                  case 22:
+                    _context2.next = 24;
                     return lazyLoadValidator();
 
-                  case 25:
+                  case 24:
                     _validator3 = _context2.sent;
 
                     _validator3.validate(dataToAdd);
@@ -323,7 +322,7 @@ var composeGenericStore = function composeGenericStore(create, options) {
 
                     reject((errors === null || errors === void 0 ? void 0 : (_errors$pop = errors.pop()) === null || _errors$pop === void 0 ? void 0 : _errors$pop.message) || collection + " item not valid!");
 
-                  case 30:
+                  case 29:
                   case "end":
                     return _context2.stop();
                 }

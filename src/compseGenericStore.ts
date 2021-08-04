@@ -40,14 +40,14 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
         workspace,
         lazyLoadWorkspace: () => {
             return new Promise(async (complete) => {
-                if (typeof store().workspace === "undefined") {
+                if (typeof store().workspace === "undefined" && typeof workspace === "undefined") {
                     store().setStatus("warming-workspace");
                     const validator = await store().lazyLoadValidator();
                     const workspace = validator.makeWorkspace();
                     set({ workspace });
                     complete(workspace);
                 } else {
-                    complete(store().workspace!);
+                    complete(store().workspace || workspace);
                 }
             })
         },
