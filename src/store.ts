@@ -80,13 +80,9 @@ export type Store<dataType> = {
    */
   retrieve: (id: string) => dataType
   /**
-   * Get an item that may not already be cached asynchronously
-   */
-  fetch: (id: string) => Promise<dataType>
-  /**
    * Insert a data-item, optionally specify the identifier. uuid4 will be used by default
    */
-  insert: (dataItem: dataType, id?: string, validate?: boolean) => Promise<string>,
+  insert: (id: string, dataItem: dataType, validate?: boolean) => Promise<string>,
   /**
    * Insert a data-item, optionally specify the identifier. uuid4 will be used by default
    */

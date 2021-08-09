@@ -153,10 +153,9 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
             store().setStatus("idle");
             return true;
         },
-        insert: (dataToAdd, optionalItemIndex, validate = false) => {
+        insert: (itemIndex, dataToAdd, validate = false) => {
             return new Promise<string>(async (resolve, reject) => {
                 store().setStatus("inserting");
-                const itemIndex = optionalItemIndex ? optionalItemIndex : v4();
                 let index = [...store().index];
                 const { lazyLoadValidator } = store();
                 const valid = validate ? (await lazyLoadValidator()).validate(dataToAdd) : true;
@@ -185,7 +184,7 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
         , update: (id, itemUpdate) => {
             store().setStatus("updating");
             const newItem = produce<DataType>(store().retrieve(id), itemUpdate);
-            return store().insert(newItem, id);
+            return store().insert(id, newItem);
         },
 
         retrieve: (itemIndex) => {
