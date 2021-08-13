@@ -425,7 +425,7 @@ var composeGenericStore = function composeGenericStore(create, options) {
                     store().setWorkspaceInstance(newWorkspace);
                     _context6.next = 7;
                     return Promise.all(store().listeners.map(function (callback) {
-                      return callback("workspace", workspace, "workspacing");
+                      return callback("workspace", newWorkspace, "workspacing");
                     }));
 
                   case 7:

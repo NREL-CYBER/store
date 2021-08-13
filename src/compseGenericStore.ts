@@ -190,7 +190,7 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
                 const workspace = await store().lazyLoadWorkspace();
                 const newWorkspace = produce<DataType>(workspace, workspaceUpdate);
                 store().setWorkspaceInstance(newWorkspace);
-                await Promise.all(store().listeners.map(callback => callback("workspace", workspace, "workspacing")))
+                await Promise.all(store().listeners.map(callback => callback("workspace", newWorkspace, "workspacing")))
                 store().setStatus("idle");
                 resolve()
             });
