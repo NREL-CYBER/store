@@ -17,4 +17,5 @@ export interface composeStoreOptions<DataType> {
     vanilla?: boolean;
     indexes?: StoreIndex[];
     workspace?: any;
+    fetch?: (id: string) => Promise<DataType | undefined>;
 }

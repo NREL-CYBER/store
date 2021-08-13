@@ -2,7 +2,7 @@ import { ErrorObject } from "ajv";
 import Validator, { RootSchemaObject } from "validator";
 import { Draft } from "immer";
 export declare type StoreStatus = "warming-workspace" | "warming-validator" | "booting" | "idle" | "fetching" | "importing" | "exporting" | "inserting" | "removing" | "erroring" | "updating" | "workspacing" | "clearing" | "activating";
-export declare type StoreListener<DataType> = (itemIndex: string, item: Partial<DataType>, status: StoreStatus) => void;
+export declare type StoreListener<DataType> = (itemIndex: string, item: Partial<DataType>, status: StoreStatus) => Promise<string>;
 /**
  * add remove retrieve contract for identifiable data type
  */
@@ -84,7 +84,7 @@ export declare type Store<dataType> = {
     /**
      * Remove a single item in the store
      */
-    remove: (id: string) => boolean;
+    remove: (id: string) => Promise<string>;
     /**
      * get all Items in the store
      */

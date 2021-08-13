@@ -15,7 +15,7 @@ import { Store, StoreListener, StoreStatus } from "./store";
 
 
 const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCreator<Store<DataType>>) => UseStore<Store<DataType>>, options: composeStoreOptions<DataType>) => {
-    const { schema, definition, initial, workspace, indexes } = options;
+    const { schema, definition, initial, workspace, indexes, fetch } = options;
     const validator = options.validator;
     const collection = definition ? definition : schema.$id ? schema.$id : "errorCollection"
     if (collection === "errorCollection") {
@@ -108,25 +108,10 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
             .filterIndex(predicate).map(
                 matchingItemIndex => store().retrieve(matchingItemIndex)!
             ),
-        fetch: (id: string) => {
-            store().setStatus("fetching")
-            throw (Error("Not IMplemented"));
-            return new Promise<DataType>((resolve, reject) => {
-                const cached = store().retrieve(id)
-                store().listeners.forEach((listener) => {
-                    listener(id, { ...cached }, "fetching");
-                })
-                if (cached)
-                    store().setStatus("idle");
-                if (cached) {
-                    resolve(cached);
-                } else {
-                    // openDB.then((db) => {
-                    // db.get(collection, id)
-                    // })
-                    reject()
-                }
-            });
+        fetch: fetch ? fetch : (id: string) => {
+            return new Promise<DataType | undefined>((resolve) => {
+                resolve(store().retrieve(id))
+            })
         },
         filterIndex: (predicate: ((e: DataType) => boolean)) => store()
             .index
@@ -135,23 +120,26 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
                     predicate(store().retrieve(itemIndex)!)
             ),
 
-        remove: (idToRemove) => {
+        remove: async (idToRemove) => {
             store().setStatus("removing");
-            const index = store().index.filter(x => x !== idToRemove);
-            if (store().index.length === index.length) {
-                return false;
-            }
-            const records = { ...store().records };
-            const oldRecord = { ...records[idToRemove] }
-            delete records[idToRemove];
-            let active = store().active;
-            if (active && active === idToRemove) {
-                active = undefined;
-            }
-            store().listeners.forEach(callback => callback(idToRemove, oldRecord, "removing"))
-            set({ index, records, active });
-            store().setStatus("idle");
-            return true;
+            return new Promise<string>(async (resolve, reject) => {
+
+                const index = store().index.filter(x => x !== idToRemove);
+                if (store().index.length === index.length) {
+                    return false;
+                }
+                const records = { ...store().records };
+                const oldRecord = { ...records[idToRemove] }
+                delete records[idToRemove];
+                let active = store().active;
+                if (active && active === idToRemove) {
+                    active = undefined;
+                }
+                set({ index, records, active });
+                await Promise.all(store().listeners.map(callback => callback(idToRemove, oldRecord, "removing")))
+                store().setStatus("idle");
+                resolve("succuss");
+            })
         },
         insert: (itemIndex, dataToAdd, validate = false) => {
             return new Promise<string>(async (resolve, reject) => {
@@ -165,7 +153,7 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
                     if (!index.includes(itemIndex))
                         index = [...index, itemIndex];
                     set({ index, records });
-                    store().listeners.forEach(callback => callback(itemIndex, { ...dataToAdd }, "inserting"))
+                    await Promise.all(store().listeners.map(callback => callback(itemIndex, { ...dataToAdd }, "inserting")))
                     store().setStatus("idle")
                     resolve(itemIndex);
                 } else {
@@ -190,9 +178,9 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
         retrieve: (itemIndex) => {
             return store().records[itemIndex];
         },
-        setActive: (active) => {
+        setActive: async (active) => {
             store().setStatus("activating");
-            store().listeners.forEach(callback => callback(active, store().retrieve(active), "activating"))
+            await store().listeners.map(callback => callback(active, store().retrieve(active), "activating"))
             set({ active });
             store().setStatus("idle");
         },
@@ -202,13 +190,13 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
                 const workspace = await store().lazyLoadWorkspace();
                 const newWorkspace = produce<DataType>(workspace, workspaceUpdate);
                 store().setWorkspaceInstance(newWorkspace);
+                await Promise.all(store().listeners.map(callback => callback("workspace", workspace, "workspacing")))
                 store().setStatus("idle");
                 resolve()
             });
         },
         setWorkspaceInstance: (workspace) => {
             set({ workspace });
-            store().listeners.forEach(callback => callback("workspace", workspace, "workspacing"))
         },
         addListener: (callback: StoreListener<DataType>) => {
             set({ listeners: [...store().listeners, callback] })
@@ -239,7 +227,7 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
             const { active } = store();
             return active ? store().retrieve(active) : undefined;
         },
-        import: (entries, shouldValidate = true, shouldNotify = true) => {
+        import: (entries, shouldValidate = true, shouldNotify = false) => {
             return new Promise(async (resolve, reject) => {
                 store().setStatus("importing");
                 const findRecordErrors = async (entries: Record<string, DataType>) => {
@@ -254,17 +242,17 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
                 const errors: ErrorObject<string, Record<string, any>>[] = shouldValidate ? await findRecordErrors(records) : [];
                 set({ errors, records: entries, index: Object.keys(entries) });
                 if (errors.length == 0 && shouldNotify) {
-                    Object.entries(entries).forEach(([itemIndex, importItem]) => {
-                        store().listeners.forEach(callback => callback(itemIndex, { ...importItem }, "inserting"))
+                    Object.entries(entries).forEach(async ([itemIndex, importItem]) => {
+                        await Promise.all(store().listeners.map(callback => callback(itemIndex, { ...importItem }, "inserting")))
                     })
                 }
                 store().setStatus("idle");
                 errors.length === 0 ? resolve() : reject();
             })
-        }, clear: () => {
+        }, clear: async () => {
             store().setStatus("clearing");
             store().import({});
-            store().listeners.forEach(callback => callback("", {}, "clearing"))
+            await Promise.all(store().listeners.map(callback => callback("", {}, "clearing")))
             store().setStatus("idle");
         },
         export: () => {
