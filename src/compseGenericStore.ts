@@ -178,7 +178,7 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
         retrieve: (itemIndex) => {
             const item = store().records[itemIndex]
             if (typeof item === "undefined") {
-
+                store().setStatus("missing")
             }
             return item;
         },
@@ -204,9 +204,13 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
             });
         },
         setWorkspaceInstance: (workspace, notify = false) => {
-            notify && store().setStatus("workspacing");
             set({ workspace });
-            notify && store().setStatus("idle");
+            notify && Promise.all(store().listeners.map(callback => callback("workspace", workspace, "workspacing"))).then(() => {
+                store().setStatus("idle");
+            }).catch(() => {
+                store().setStatus("erroring")
+            })
+                ;
         },
         addListener: (callback: StoreListener<DataType>) => {
             set({ listeners: [...store().listeners, callback] })
