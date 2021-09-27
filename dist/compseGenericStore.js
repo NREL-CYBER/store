@@ -375,7 +375,9 @@ var composeGenericStore = function composeGenericStore(create, options) {
       retrieve: function retrieve(itemIndex) {
         var item = store().records[itemIndex];
 
-        if (typeof item === "undefined") {}
+        if (typeof item === "undefined") {
+          store().setStatus("missing");
+        }
 
         return item;
       },
@@ -452,11 +454,16 @@ var composeGenericStore = function composeGenericStore(create, options) {
       },
       setWorkspaceInstance: function setWorkspaceInstance(workspace) {
         var notify = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
-        notify && store().setStatus("workspacing");
         set({
           workspace: workspace
         });
-        notify && store().setStatus("idle");
+        notify && Promise.all(store().listeners.map(function (callback) {
+          return callback("workspace", workspace, "workspacing");
+        })).then(function () {
+          store().setStatus("idle");
+        })["catch"](function () {
+          store().setStatus("erroring");
+        });
       },
       addListener: function addListener(callback) {
         set({
