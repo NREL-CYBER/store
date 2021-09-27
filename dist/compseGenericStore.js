@@ -373,7 +373,11 @@ var composeGenericStore = function composeGenericStore(create, options) {
         return store().insert(id, newItem);
       },
       retrieve: function retrieve(itemIndex) {
-        return store().records[itemIndex];
+        var item = store().records[itemIndex];
+
+        if (typeof item === "undefined") {}
+
+        return item;
       },
       setActive: function () {
         var _setActive = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(active) {
@@ -423,16 +427,17 @@ var composeGenericStore = function composeGenericStore(create, options) {
                     workspace = _context6.sent;
                     newWorkspace = (0, _immer["default"])(workspace, workspaceUpdate);
                     store().setWorkspaceInstance(newWorkspace);
-                    _context6.next = 7;
-                    return Promise.all(store().listeners.map(function (callback) {
+                    Promise.all(store().listeners.map(function (callback) {
                       return callback("workspace", newWorkspace, "workspacing");
-                    }));
+                    })).then(function () {
+                      store().setStatus("idle");
+                      resolve();
+                    })["catch"](function () {
+                      store().setStatus("erroring");
+                      reject();
+                    });
 
-                  case 7:
-                    store().setStatus("idle");
-                    resolve();
-
-                  case 9:
+                  case 6:
                   case "end":
                     return _context6.stop();
                 }
@@ -446,9 +451,12 @@ var composeGenericStore = function composeGenericStore(create, options) {
         }());
       },
       setWorkspaceInstance: function setWorkspaceInstance(workspace) {
+        var notify = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+        notify && store().setStatus("workspacing");
         set({
           workspace: workspace
         });
+        notify && store().setStatus("idle");
       },
       addListener: function addListener(callback) {
         set({

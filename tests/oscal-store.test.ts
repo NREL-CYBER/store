@@ -12,7 +12,7 @@ test("can load an oscal json schema", async () => {
     });
     const importedOscal = importOscal(oscal_ssp_example["system-security-plan"]);
 
-    await sspStoreApi.getState().insert(importedOscal);
+    await sspStoreApi.getState().insert(importedOscal.uuid, importedOscal);
 
     expect(sspStoreApi.getState().all().length > 0).toBeTruthy()
 })

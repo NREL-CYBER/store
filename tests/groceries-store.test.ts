@@ -30,7 +30,7 @@ test("After insterting a valid brocoli, it is found in the veggie store", async 
         vanilla: true
     });
 
-    await veggieStoreAPI.getState().insert(barocolli);
+    await veggieStoreAPI.getState().insert("obama", barocolli);
     expect(veggieStoreAPI.getState().find(x => x.veggieName == barocolli.veggieName)).toBeTruthy()
 })
 
@@ -52,7 +52,7 @@ test("Brocolli set as initial value is able to be retrieved after init", () => {
             initial: { ["obama"]: barocolli }
         });
 
-    expect(veggieStoreAPI.getState().retrieve("obama").veggieName === "baracoli obama");
+    expect(veggieStoreAPI.getState().retrieve("obama")?.veggieName === "baracoli obama");
 })
 test("Brocolli set as exported  as a key value pair on export", () => {
     const veggieStoreAPI = composeVanillaStore<Veggie>(

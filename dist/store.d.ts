@@ -1,7 +1,7 @@
 import { ErrorObject } from "ajv";
 import Validator, { RootSchemaObject } from "validator";
 import { Draft } from "immer";
-export declare type StoreStatus = "warming-workspace" | "warming-validator" | "booting" | "idle" | "fetching" | "importing" | "exporting" | "inserting" | "removing" | "erroring" | "updating" | "workspacing" | "clearing" | "activating";
+export declare type StoreStatus = "warming-workspace" | "warming-validator" | "booting" | "idle" | "fetching" | "importing" | "exporting" | "inserting" | "removing" | "erroring" | "updating" | "workspacing" | "clearing" | "activating" | "missing";
 export declare type StoreListener<DataType> = (itemIndex: string, item: Partial<DataType>, status: StoreStatus) => Promise<string>;
 /**
  * add remove retrieve contract for identifiable data type
@@ -72,7 +72,7 @@ export declare type Store<dataType> = {
     /**
      * Get an item by id that's already been cached
      */
-    retrieve: (id: string) => dataType;
+    retrieve: (id: string) => undefined | dataType;
     /**
      * Insert a data-item, optionally specify the identifier. uuid4 will be used by default
      */
@@ -104,7 +104,7 @@ export declare type Store<dataType> = {
     /**
      * set the workspace directly (from serialized workspace)
      */
-    setWorkspaceInstance: (instance: dataType) => void;
+    setWorkspaceInstance: (instance: dataType, notify?: boolean) => void;
     /**
      * filter all string properties by query (perhaps a full fuzzy index in the future)
      */

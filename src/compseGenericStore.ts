@@ -171,16 +171,20 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
         }
         , update: (id, itemUpdate) => {
             store().setStatus("updating");
-            const newItem = produce<DataType>(store().retrieve(id), itemUpdate);
+            const newItem = produce<DataType>(store().retrieve(id)!, itemUpdate);
             return store().insert(id, newItem);
         },
 
         retrieve: (itemIndex) => {
-            return store().records[itemIndex];
+            const item = store().records[itemIndex]
+            if (typeof item === "undefined") {
+
+            }
+            return item;
         },
         setActive: async (active) => {
             store().setStatus("activating");
-            await store().listeners.map(callback => callback(active, store().retrieve(active), "activating"))
+            await store().listeners.map(callback => callback(active, store().retrieve(active)!, "activating"))
             set({ active });
             store().setStatus("idle");
         },
@@ -190,13 +194,19 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
                 const workspace = await store().lazyLoadWorkspace();
                 const newWorkspace = produce<DataType>(workspace, workspaceUpdate);
                 store().setWorkspaceInstance(newWorkspace);
-                await Promise.all(store().listeners.map(callback => callback("workspace", newWorkspace, "workspacing")))
-                store().setStatus("idle");
-                resolve()
+                Promise.all(store().listeners.map(callback => callback("workspace", newWorkspace, "workspacing"))).then(() => {
+                    store().setStatus("idle");
+                    resolve()
+                }).catch(() => {
+                    store().setStatus("erroring")
+                    reject()
+                })
             });
         },
-        setWorkspaceInstance: (workspace) => {
+        setWorkspaceInstance: (workspace, notify = false) => {
+            notify && store().setStatus("workspacing");
             set({ workspace });
+            notify && store().setStatus("idle");
         },
         addListener: (callback: StoreListener<DataType>) => {
             set({ listeners: [...store().listeners, callback] })
@@ -209,7 +219,7 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
                 .index
                 .filter(
                     itemIndex =>
-                        predicate(store().retrieve(itemIndex))
+                        predicate(store().retrieve(itemIndex)!)
                 ).forEach(index => {
                     store().remove(index);
                 });
@@ -218,7 +228,7 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
             .index
             .find(
                 itemIndex =>
-                    predicate(store().retrieve(itemIndex))
+                    predicate(store().retrieve(itemIndex)!)
             ),
         all: () => {
             return store().filter(x => true);
