@@ -160,6 +160,7 @@ var composeGenericStore = function composeGenericStore(create, options) {
           }
         });
       },
+      indexes: {},
       listeners: [// (id, item, status) => {
         //     switch (status) {
         //         case "clearing":
@@ -375,8 +376,8 @@ var composeGenericStore = function composeGenericStore(create, options) {
       retrieve: function retrieve(itemIndex) {
         var item = store().records[itemIndex];
 
-        if (typeof item === "undefined") {
-          store().setStatus("missing");
+        if (!item) {
+          console.log("Cache Miss", itemIndex, collection);
         }
 
         return item;

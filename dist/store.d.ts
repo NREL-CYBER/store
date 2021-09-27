@@ -17,6 +17,10 @@ export declare type Store<dataType> = {
      */
     index: string[];
     /**
+     * Indexes of query results & cache misses
+     */
+    indexes: Record<string, string[]>;
+    /**
      * Active data instance identifier
      */
     active?: string;

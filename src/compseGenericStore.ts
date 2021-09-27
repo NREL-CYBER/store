@@ -78,6 +78,7 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
             }
             )
         },
+        indexes: {},
         listeners: [
             // (id, item, status) => {
             //     switch (status) {
@@ -177,8 +178,8 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
 
         retrieve: (itemIndex) => {
             const item = store().records[itemIndex]
-            if (typeof item === "undefined") {
-                store().setStatus("missing")
+            if (!item) {
+                console.log("Cache Miss", itemIndex, collection)
             }
             return item;
         },
