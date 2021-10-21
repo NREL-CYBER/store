@@ -33,7 +33,7 @@ const composeGenericVirtualStore = <StoreType, DataType>(create: (storeCreator: 
                     store().setStatus("idle");
                     return false;
                 }
-                await synchronize(remaining);
+                await synchronize(remaining.filter(Boolean));
                 store().setStatus("idle");
                 resolve("succuss");
             })
@@ -42,7 +42,7 @@ const composeGenericVirtualStore = <StoreType, DataType>(create: (storeCreator: 
             return new Promise<string>(async (resolve, reject) => {
                 store().setStatus("inserting");
                 const newCollection = [...store().filter(x => (x as any)[index] !== itemIndex), dataToAdd];
-                await synchronize(newCollection);
+                await synchronize(newCollection.filter(Boolean));
                 store().setStatus("idle")
                 resolve(itemIndex);
             })
@@ -53,7 +53,7 @@ const composeGenericVirtualStore = <StoreType, DataType>(create: (storeCreator: 
             return store().insert(id, newItem);
         },
         import: (records) => {
-            return synchronize(Object.values(records))
+            return synchronize(Object.values(records).filter(Boolean))
         },
 
         retrieve: (itemIndex) => {
