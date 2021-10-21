@@ -38,7 +38,7 @@ var composeGenericVirtualStore = function composeGenericVirtualStore(create, opt
     return {
       errors: [],
       index: function index() {
-        return Object.keys(fetch().map(function (x) {
+        return Object.keys(store().all().map(function (x) {
           return x[_index];
         }));
       },
@@ -51,7 +51,7 @@ var composeGenericVirtualStore = function composeGenericVirtualStore(create, opt
       },
       status: status,
       filter: function filter(predicate) {
-        return fetch().filter(predicate);
+        return store().all().filter(predicate);
       },
       remove: function () {
         var _remove = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(idToRemove) {
@@ -67,7 +67,7 @@ var composeGenericVirtualStore = function composeGenericVirtualStore(create, opt
                         while (1) {
                           switch (_context.prev = _context.next) {
                             case 0:
-                              remaining = fetch().filter(function (x) {
+                              remaining = store().all().filter(function (x) {
                                 return x[_index] !== idToRemove;
                               });
 
@@ -124,7 +124,7 @@ var composeGenericVirtualStore = function composeGenericVirtualStore(create, opt
                 switch (_context3.prev = _context3.next) {
                   case 0:
                     store().setStatus("inserting");
-                    newCollection = fetch().filter(function (x) {
+                    newCollection = store().all().filter(function (x) {
                       return x[_index] !== itemIndex;
                     });
                     newCollection.push(dataToAdd);
@@ -161,7 +161,7 @@ var composeGenericVirtualStore = function composeGenericVirtualStore(create, opt
         });
       },
       retrieve: function retrieve(itemIndex) {
-        var item = fetch().find(function (x) {
+        var item = store().all().find(function (x) {
           return x[_index] === itemIndex;
         });
 
@@ -182,7 +182,7 @@ var composeGenericVirtualStore = function composeGenericVirtualStore(create, opt
         });
       },
       filterIndex: function filterIndex(predicate) {
-        return fetch().filter(function (item) {
+        return store().all().filter(function (item) {
           return predicate;
         }).map(function (x) {
           return x[_index];

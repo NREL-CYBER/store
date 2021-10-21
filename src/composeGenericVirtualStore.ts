@@ -17,18 +17,18 @@ const composeGenericVirtualStore = <StoreType, DataType>(create: (storeCreator: 
     return create((set, store) => ({
 
         errors: [],
-        index: () => Object.keys(fetch().map((x: any) => x[index])),
+        index: () => Object.keys(store().all().map((x: any) => x[index])),
         statusHistory: [],
         setStatus: (status) => {
             set({ status, statusHistory: [...store().statusHistory.slice(0, 9), status] });
         },
         status,
-        filter: (predicate: ((e: DataType) => boolean)) => fetch().filter(predicate),
+        filter: (predicate: ((e: DataType) => boolean)) => store().all().filter(predicate),
         remove: async (idToRemove) => {
             store().setStatus("removing");
             return new Promise<string>(async (resolve, reject) => {
 
-                const remaining = fetch().filter(x => (x as any)[index] !== idToRemove);
+                const remaining = store().all().filter(x => (x as any)[index] !== idToRemove);
                 if (store().index().length === remaining.length) {
                     return false;
                 }
@@ -42,7 +42,7 @@ const composeGenericVirtualStore = <StoreType, DataType>(create: (storeCreator: 
         insert: (itemIndex, dataToAdd) => {
             return new Promise<string>(async (resolve, reject) => {
                 store().setStatus("inserting");
-                const newCollection = fetch().filter(x => (x as any)[index] !== itemIndex);
+                const newCollection = store().all().filter(x => (x as any)[index] !== itemIndex);
                 newCollection.push(dataToAdd);
                 await synchronize((realObject: any) => {
                     realObject = newCollection;
@@ -63,7 +63,7 @@ const composeGenericVirtualStore = <StoreType, DataType>(create: (storeCreator: 
         },
 
         retrieve: (itemIndex) => {
-            const item = fetch().find((x: any) => x[index] === itemIndex)
+            const item = store().all().find((x: any) => x[index] === itemIndex)
             if (!item) {
                 console.log("Cache Miss", itemIndex, "virtual-store")
             }
@@ -83,7 +83,7 @@ const composeGenericVirtualStore = <StoreType, DataType>(create: (storeCreator: 
                 });
         },
         filterIndex: (predicate) =>
-            fetch()
+            store().all()
                 .filter(item => predicate).map((x: any) => x[index])
         ,
 
