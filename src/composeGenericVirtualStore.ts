@@ -93,7 +93,10 @@ const composeGenericVirtualStore = <StoreType, DataType>(create: (storeCreator: 
                 itemIndex =>
                     predicate(store().retrieve(itemIndex)!)
             ),
-        all: fetch,
+        all: () => {
+            const items = fetch()
+            return typeof items === "undefined" ? [] : items
+        },
         clear: async () => {
             store().setStatus("clearing");
             store().index().forEach((i) => {
