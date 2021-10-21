@@ -19,3 +19,7 @@ export interface composeStoreOptions<DataType> {
     workspace?: any;
     fetch?: (id: string) => Promise<DataType | undefined>;
 }
+export interface composeVirtualStoreOptions<DataType> {
+    synchronize: ((realObject: any) => Promise<string>);
+    fetch: () => Record<string, DataType>;
+}

@@ -1,4 +1,6 @@
 import { composeStore } from "./composeStore";
-import { composeStoreOptions } from "./composeStoreOptions";
+import { composeStoreOptions, composeVirtualStoreOptions } from "./composeStoreOptions";
+import { composeVirtualStore } from "./composeVirtualStore";
 import { Store } from "./store";
-export { Store, composeStore, composeStoreOptions };
+import { VirtualStore } from "./virtual-store";
+export { Store, composeStore, composeStoreOptions, VirtualStore, composeVirtualStore, composeVirtualStoreOptions };

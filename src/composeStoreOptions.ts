@@ -6,6 +6,7 @@
  * @param initial The initial value of the store
  */
 
+import { Draft } from "immer";
 import Validator, { RootSchemaObject } from "validator";
 
 export interface StoreIndex {
@@ -22,4 +23,10 @@ export interface composeStoreOptions<DataType> {
     indexes?: StoreIndex[]
     workspace?: any
     fetch?: (id: string) => Promise<DataType | undefined>
+}
+
+
+export interface composeVirtualStoreOptions<DataType> {
+    synchronize: ((realObject: any) => Promise<string>),
+    fetch: () => Record<string, DataType>
 }

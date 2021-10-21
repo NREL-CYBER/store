@@ -23,7 +23,7 @@ export type Store<dataType> = {
    */
   index: string[]
   /**
-   * Indexes of query results & cache misses
+   * Indexes of query results & cache misses //TODO
    */
   indexes: Record<string, string[]>
   /**
@@ -35,28 +35,28 @@ export type Store<dataType> = {
    */
   records: Record<string, dataType>
   /**
-  *  Lazy instantiate workspace on request for performance
-  */
-  workspace?: dataType
-  /**
   * workspace data is not validated.
   * Idea is this is where you build data
   * that will eventually be valid after some time
   * then it will graduate and be inserted 
-  *  
+  */
+  workspace?: dataType
+  /**
+  *  Lazy instantiate workspace on request for performance
+  *  This is expensive for large schemas, make sure to show a loading screen.
   */
   lazyLoadWorkspace: () => Promise<dataType>
   /**
-  *  Lazy instantiate Validator on request app boot performance
-   */
+  * Validator can be triggered on insert and import
+  */
   validator?: Validator<dataType>,
   /**
-  * Validator is triggered on insert and import
+  *  Lazily instantiate the Validator
+  *  This is expensive for large schemas, make sure to show a loading screen.
   */
   lazyLoadValidator: () => Promise<Validator<dataType>>,
   /**
-    * Validation errors
-    * validation occurs on load and add
+    * Validation errors are cached here
     */
   errors: ErrorObject[]
   /**

@@ -1,24 +1,24 @@
 import 'regenerator-runtime/runtime'
 import { composeVanillaStore } from "../dist/composeVanillaStore";
 import groceriesSchema from "./schemas/groceries-schema.json";
-type Fruit = string;
-interface Veggie {
+export type Fruit = string;
+export interface Veggie {
     veggieName: string
     veggieLike: boolean
 }
-const barocolli: Veggie = { veggieLike: true, veggieName: "baracoli obama" };
-const tomato: Fruit = "Heirloom Tomato";
+export const barocolli: Veggie = { veggieLike: true, veggieName: "baracoli obama" };
+export const tomato: Fruit = "Heirloom Tomato";
 
-interface Groceries {
+export interface Groceries {
     fruits: Fruit[]
     veggies: Veggie[]
 }
-const groceryList: Groceries = {
+export const groceryList: Groceries = {
     veggies: [barocolli],
     fruits: [tomato]
 }
 
-const invalidGroceryList = {
+export const invalidGroceryList = {
     veggies: [barocolli, 9],
     fruits: [tomato, { veggieLike: "yeee", veggieName: "Chocolate" }]
 }
