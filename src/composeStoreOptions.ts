@@ -27,6 +27,6 @@ export interface composeStoreOptions<DataType> {
 
 
 export interface composeVirtualStoreOptions<DataType> {
-    synchronize: ((realObject: any) => Promise<string>),
+    synchronize: ((realObject: any) => Promise<void>),
     fetch: () => Record<string, DataType>
 }

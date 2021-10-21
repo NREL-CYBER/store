@@ -20,6 +20,6 @@ export interface composeStoreOptions<DataType> {
     fetch?: (id: string) => Promise<DataType | undefined>;
 }
 export interface composeVirtualStoreOptions<DataType> {
-    synchronize: ((realObject: any) => Promise<string>);
+    synchronize: ((realObject: any) => Promise<void>);
     fetch: () => Record<string, DataType>;
 }

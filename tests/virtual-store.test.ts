@@ -19,14 +19,8 @@ test("can insert a party into workspace via virtual store", async () => {
             return parties.reduce((a, b) => ({ ...a, [b.uuid]: b }), {})
         },
         synchronize: (records) => {
-            return new Promise((resolve, reject) => {
-                return sspStoreApi.getState().updateWorkspace((draft) => {
-                    draft.metadata.parties = Object.values(records)
-                }).then(() => {
-                    resolve("success")
-                }).catch((err) => {
-                    reject(err);
-                })
+            return sspStoreApi.getState().updateWorkspace((draft) => {
+                draft.metadata.parties = Object.values(records)
             })
         }
     });
