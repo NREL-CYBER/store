@@ -9,12 +9,6 @@ var _immer = _interopRequireDefault(require("immer"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
-function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) { symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); } keys.push.apply(keys, symbols); } return keys; }
-
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
-
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
@@ -37,14 +31,16 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
  */
 var composeGenericVirtualStore = function composeGenericVirtualStore(create, options) {
   var synchronize = options.synchronize,
-      fetch = options.fetch;
+      fetch = options.fetch,
+      _index = options.index;
   var status = "booting";
   return create(function (set, store) {
     return {
-      records: fetch,
       errors: [],
       index: function index() {
-        return Object.keys(fetch());
+        return Object.keys(fetch().map(function (x) {
+          return x[_index];
+        }));
       },
       statusHistory: [],
       setStatus: function setStatus(status) {
@@ -54,11 +50,8 @@ var composeGenericVirtualStore = function composeGenericVirtualStore(create, opt
         });
       },
       status: status,
-      indexes: {},
       filter: function filter(predicate) {
-        return store().filterIndex(predicate).map(function (matchingItemIndex) {
-          return store().retrieve(matchingItemIndex);
-        });
+        return store().all().filter(predicate);
       },
       remove: function () {
         var _remove = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(idToRemove) {
@@ -69,16 +62,16 @@ var composeGenericVirtualStore = function composeGenericVirtualStore(create, opt
                   store().setStatus("removing");
                   return _context2.abrupt("return", new Promise( /*#__PURE__*/function () {
                     var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(resolve, reject) {
-                      var index, records;
+                      var remaining;
                       return regeneratorRuntime.wrap(function _callee$(_context) {
                         while (1) {
                           switch (_context.prev = _context.next) {
                             case 0:
-                              index = store().index().filter(function (x) {
-                                return x !== idToRemove;
+                              remaining = store().all().filter(function (x) {
+                                return x[_index] !== idToRemove;
                               });
 
-                              if (!(store().index().length === index.length)) {
+                              if (!(store().index().length === remaining.length)) {
                                 _context.next = 3;
                                 break;
                               }
@@ -86,18 +79,16 @@ var composeGenericVirtualStore = function composeGenericVirtualStore(create, opt
                               return _context.abrupt("return", false);
 
                             case 3:
-                              records = _objectSpread({}, store().records());
-                              delete records[idToRemove];
-                              _context.next = 7;
+                              _context.next = 5;
                               return synchronize(function (realObject) {
-                                realObject = records;
+                                realObject = remaining;
                               });
 
-                            case 7:
+                            case 5:
                               store().setStatus("idle");
                               resolve("succuss");
 
-                            case 9:
+                            case 7:
                             case "end":
                               return _context.stop();
                           }
@@ -127,26 +118,26 @@ var composeGenericVirtualStore = function composeGenericVirtualStore(create, opt
       insert: function insert(itemIndex, dataToAdd) {
         return new Promise( /*#__PURE__*/function () {
           var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(resolve, reject) {
-            var index, records;
+            var newCollection;
             return regeneratorRuntime.wrap(function _callee3$(_context3) {
               while (1) {
                 switch (_context3.prev = _context3.next) {
                   case 0:
                     store().setStatus("inserting");
-                    index = _toConsumableArray(store().index());
-                    records = _objectSpread({}, store().records());
-                    records[itemIndex] = dataToAdd;
-                    if (!index.includes(itemIndex)) index = [].concat(_toConsumableArray(index), [itemIndex]);
-                    _context3.next = 7;
+                    newCollection = store().all().filter(function (x) {
+                      return x[_index] !== itemIndex;
+                    });
+                    newCollection.push(dataToAdd);
+                    _context3.next = 5;
                     return synchronize(function (realObject) {
-                      realObject = records;
+                      realObject = newCollection;
                     });
 
-                  case 7:
+                  case 5:
                     store().setStatus("idle");
                     resolve(itemIndex);
 
-                  case 9:
+                  case 7:
                   case "end":
                     return _context3.stop();
                 }
@@ -170,7 +161,9 @@ var composeGenericVirtualStore = function composeGenericVirtualStore(create, opt
         });
       },
       retrieve: function retrieve(itemIndex) {
-        var item = store().records()[itemIndex];
+        var item = fetch().find(function (x) {
+          return x[_index] === itemIndex;
+        });
 
         if (!item) {
           console.log("Cache Miss", itemIndex, "virtual-store");
@@ -189,8 +182,10 @@ var composeGenericVirtualStore = function composeGenericVirtualStore(create, opt
         });
       },
       filterIndex: function filterIndex(predicate) {
-        return store().index().filter(function (itemIndex) {
-          return predicate(store().retrieve(itemIndex));
+        return store().all().filter(function (item) {
+          return predicate;
+        }).map(function (x) {
+          return x[_index];
         });
       },
       findIndex: function findIndex(predicate) {
@@ -199,9 +194,7 @@ var composeGenericVirtualStore = function composeGenericVirtualStore(create, opt
         });
       },
       all: function all() {
-        return store().filter(function (x) {
-          return true;
-        });
+        return fetch();
       },
       clear: function () {
         var _clear = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4() {

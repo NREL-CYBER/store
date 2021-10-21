@@ -11,36 +11,29 @@ import { VirtualStore } from "./virtual-store";
 
 
 const composeGenericVirtualStore = <StoreType, DataType>(create: (storeCreator: StateCreator<VirtualStore<DataType>>) => UseStore<VirtualStore<DataType>>, options: composeVirtualStoreOptions<DataType>) => {
-    const { synchronize, fetch } = options;
+    const { synchronize, fetch, index } = options;
     const status: StoreStatus = "booting"
 
     return create((set, store) => ({
 
-        records: fetch,
         errors: [],
-        index: () => Object.keys(fetch()),
+        index: () => Object.keys(fetch().map((x: any) => x[index])),
         statusHistory: [],
         setStatus: (status) => {
             set({ status, statusHistory: [...store().statusHistory.slice(0, 9), status] });
         },
         status,
-        indexes: {},
-        filter: (predicate: ((e: DataType) => boolean)) => store()
-            .filterIndex(predicate).map(
-                matchingItemIndex => store().retrieve(matchingItemIndex)!
-            ),
+        filter: (predicate: ((e: DataType) => boolean)) => store().all().filter(predicate),
         remove: async (idToRemove) => {
             store().setStatus("removing");
             return new Promise<string>(async (resolve, reject) => {
 
-                const index = store().index().filter(x => x !== idToRemove);
-                if (store().index().length === index.length) {
+                const remaining = store().all().filter(x => (x as any)[index] !== idToRemove);
+                if (store().index().length === remaining.length) {
                     return false;
                 }
-                const records = { ...store().records() };
-                delete records[idToRemove];
                 await synchronize((realObject: any) => {
-                    realObject = records;
+                    realObject = remaining;
                 });
                 store().setStatus("idle");
                 resolve("succuss");
@@ -49,13 +42,10 @@ const composeGenericVirtualStore = <StoreType, DataType>(create: (storeCreator: 
         insert: (itemIndex, dataToAdd) => {
             return new Promise<string>(async (resolve, reject) => {
                 store().setStatus("inserting");
-                let index = [...store().index()];
-                let records = { ...store().records() };
-                records[itemIndex] = dataToAdd;
-                if (!index.includes(itemIndex))
-                    index = [...index, itemIndex];
+                const newCollection = store().all().filter(x => (x as any)[index] !== itemIndex);
+                newCollection.push(dataToAdd);
                 await synchronize((realObject: any) => {
-                    realObject = records;
+                    realObject = newCollection;
                 });
                 store().setStatus("idle")
                 resolve(itemIndex);
@@ -73,7 +63,7 @@ const composeGenericVirtualStore = <StoreType, DataType>(create: (storeCreator: 
         },
 
         retrieve: (itemIndex) => {
-            const item = store().records()[itemIndex]
+            const item = fetch().find((x: any) => x[index] === itemIndex)
             if (!item) {
                 console.log("Cache Miss", itemIndex, "virtual-store")
             }
@@ -94,11 +84,8 @@ const composeGenericVirtualStore = <StoreType, DataType>(create: (storeCreator: 
         },
         filterIndex: (predicate) =>
             store()
-                .index()
-                .filter(
-                    itemIndex =>
-                        predicate(store().retrieve(itemIndex)!)
-                )
+                .all()
+                .filter(item => predicate).map((x: any) => x[index])
         ,
 
         findIndex: (predicate: ((e: DataType) => boolean)) => store()
@@ -108,7 +95,7 @@ const composeGenericVirtualStore = <StoreType, DataType>(create: (storeCreator: 
                     predicate(store().retrieve(itemIndex)!)
             ),
         all: () => {
-            return store().filter(x => true);
+            return fetch();
         },
         clear: async () => {
             store().setStatus("clearing");

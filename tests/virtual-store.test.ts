@@ -16,11 +16,12 @@ test("can insert a party into workspace via virtual store", async () => {
     const sspPartyVirtualStore = composeVirtualStore<Party>({
         fetch: () => {
             const parties = sspStoreApi.getState().workspace?.metadata.parties || []
-            return parties.reduce((a, b) => ({ ...a, [b.uuid]: b }), {})
+            return parties
         },
+        index: "uuid",
         synchronize: (records) => {
             return sspStoreApi.getState().updateWorkspace((draft) => {
-                draft.metadata.parties = Object.values(records)
+                draft.metadata.parties = records
             })
         }
     });
@@ -29,3 +30,30 @@ test("can insert a party into workspace via virtual store", async () => {
         expect(((sspStoreApi.getState().workspace?.metadata?.parties?.length) || 0) > 0).toBeTruthy()
     })
 })
+
+
+test("can get parties from the virtual store", async () => {
+
+    const sspStoreApi = composeVanillaStore<SystemSecurityPlan>({
+        schema: oscal_ssp_schema,
+        definition: "system_security_plan"
+    });
+
+    const sspPartyVirtualStore = composeVirtualStore<Party>({
+        fetch: () => {
+            const parties: Party[] = (sspStoreApi.getState().workspace?.metadata.parties ? sspStoreApi.getState().workspace?.metadata.parties : []) as any
+            return parties
+        },
+        index: "uuid",
+        synchronize: (newParties) => {
+            return sspStoreApi.getState().updateWorkspace((draft) => {
+                draft.metadata.parties = newParties
+            })
+        }
+    });
+    const party = { type: "person", uuid: v4(), name: "broseph stalin" }
+    await sspPartyVirtualStore.getState().insert(party.uuid, party)
+    expect(((sspPartyVirtualStore.getState().all().length)) > 0).toBeTruthy()
+
+})
+

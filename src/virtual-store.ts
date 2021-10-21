@@ -6,7 +6,6 @@ import { StoreStatus } from "./store";
  * add remove retrieve contract for identifiable data type
  */
 export type VirtualStore<dataType> = {
-    records: () => Record<string, dataType>
     index: () => (string)[]
     /**
      * shares the status of a store ie inserting idle, removing etc...
