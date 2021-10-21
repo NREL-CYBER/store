@@ -66,6 +66,11 @@ const composeGenericVirtualStore = <StoreType, DataType>(create: (storeCreator: 
             const newItem = produce<DataType>(store().retrieve(id)!, itemUpdate);
             return store().insert(id, newItem);
         },
+        import: (records) => {
+            return synchronize((realObject: any) => {
+                realObject = records;
+            })
+        },
 
         retrieve: (itemIndex) => {
             const item = store().records()[itemIndex]

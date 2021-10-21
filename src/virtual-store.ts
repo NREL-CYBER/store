@@ -63,6 +63,11 @@ export type VirtualStore<dataType> = {
      * Remove single matching item
      */
     findAndRemove: (predicate: ((e: dataType) => boolean)) => void,
+    /**
+     * Import Records
+     */
+    import: (records: Record<string, dataType>, validate?: boolean, notify?: boolean) => Promise<void>
+
 }
 
 

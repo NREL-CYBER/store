@@ -164,6 +164,11 @@ var composeGenericVirtualStore = function composeGenericVirtualStore(create, opt
         var newItem = (0, _immer["default"])(store().retrieve(id), itemUpdate);
         return store().insert(id, newItem);
       },
+      "import": function _import(records) {
+        return synchronize(function (realObject) {
+          realObject = records;
+        });
+      },
       retrieve: function retrieve(itemIndex) {
         var item = store().records()[itemIndex];
 
