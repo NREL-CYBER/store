@@ -30,6 +30,7 @@ const composeGenericVirtualStore = <StoreType, DataType>(create: (storeCreator: 
 
                 const remaining = store().all().filter(x => (x as any)[index] !== idToRemove);
                 if (store().index().length === remaining.length) {
+                    store().setStatus("idle");
                     return false;
                 }
                 await synchronize(remaining);
@@ -40,8 +41,7 @@ const composeGenericVirtualStore = <StoreType, DataType>(create: (storeCreator: 
         insert: (itemIndex, dataToAdd) => {
             return new Promise<string>(async (resolve, reject) => {
                 store().setStatus("inserting");
-                const newCollection = store().all().filter(x => (x as any)[index] !== itemIndex);
-                newCollection.push(dataToAdd);
+                const newCollection = [...store().filter(x => (x as any)[index] !== itemIndex), dataToAdd];
                 await synchronize(newCollection);
                 store().setStatus("idle")
                 resolve(itemIndex);

@@ -72,21 +72,22 @@ var composeGenericVirtualStore = function composeGenericVirtualStore(create, opt
                               });
 
                               if (!(store().index().length === remaining.length)) {
-                                _context.next = 3;
+                                _context.next = 4;
                                 break;
                               }
 
+                              store().setStatus("idle");
                               return _context.abrupt("return", false);
 
-                            case 3:
-                              _context.next = 5;
+                            case 4:
+                              _context.next = 6;
                               return synchronize(remaining);
 
-                            case 5:
+                            case 6:
                               store().setStatus("idle");
                               resolve("succuss");
 
-                            case 7:
+                            case 8:
                             case "end":
                               return _context.stop();
                           }
@@ -122,18 +123,17 @@ var composeGenericVirtualStore = function composeGenericVirtualStore(create, opt
                 switch (_context3.prev = _context3.next) {
                   case 0:
                     store().setStatus("inserting");
-                    newCollection = store().all().filter(function (x) {
+                    newCollection = [].concat(_toConsumableArray(store().filter(function (x) {
                       return x[_index] !== itemIndex;
-                    });
-                    newCollection.push(dataToAdd);
-                    _context3.next = 5;
+                    })), [dataToAdd]);
+                    _context3.next = 4;
                     return synchronize(newCollection);
 
-                  case 5:
+                  case 4:
                     store().setStatus("idle");
                     resolve(itemIndex);
 
-                  case 7:
+                  case 6:
                   case "end":
                     return _context3.stop();
                 }
