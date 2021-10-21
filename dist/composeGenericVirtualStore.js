@@ -157,11 +157,11 @@ var composeGenericVirtualStore = function composeGenericVirtualStore(create, opt
       },
       "import": function _import(records) {
         return synchronize(function (realObject) {
-          realObject = records;
+          realObject = Object.values(records);
         });
       },
       retrieve: function retrieve(itemIndex) {
-        var item = store().all().find(function (x) {
+        var item = store().find(function (x) {
           return x[_index] === itemIndex;
         });
 
@@ -172,26 +172,22 @@ var composeGenericVirtualStore = function composeGenericVirtualStore(create, opt
         return item;
       },
       find: function find(predicate) {
-        return store().filter(predicate).pop();
+        return store().all().find(predicate);
       },
       findAndRemove: function findAndRemove(predicate) {
-        store().index().filter(function (itemIndex) {
-          return predicate(store().retrieve(itemIndex));
-        }).forEach(function (index) {
-          store().remove(index);
+        store().all().filter(predicate).forEach(function (item) {
+          var itemIndex = item[_index];
+          store().remove(itemIndex);
         });
       },
       filterIndex: function filterIndex(predicate) {
-        return store().all().filter(function (item) {
-          return predicate;
-        }).map(function (x) {
+        return store().all().filter(predicate).map(function (x) {
           return x[_index];
         });
       },
       findIndex: function findIndex(predicate) {
-        return store().index().find(function (itemIndex) {
-          return predicate(store().retrieve(itemIndex));
-        });
+        var item = store().all().find(predicate);
+        return item && item[_index] ? item[_index] : undefined;
       },
       all: function all() {
         var items = fetch();

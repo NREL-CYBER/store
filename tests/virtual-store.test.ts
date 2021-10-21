@@ -57,3 +57,33 @@ test("can get parties from the virtual store", async () => {
 
 })
 
+
+test("can import a dictionary of parties into the real store through the virtual store", async () => {
+    const sspStoreApi = composeVanillaStore<SystemSecurityPlan>({
+        schema: oscal_ssp_schema,
+        definition: "system_security_plan"
+    });
+
+    const sspPartyVirtualStore = composeVirtualStore<Party>({
+        fetch: () => {
+            const parties: Party[] = (sspStoreApi.getState().workspace?.metadata.parties ? sspStoreApi.getState().workspace?.metadata.parties : []) as any
+            return parties
+        },
+        index: "uuid",
+        synchronize: (newParties) => {
+            return sspStoreApi.getState().updateWorkspace((draft) => {
+                draft.metadata.parties = newParties
+            })
+        }
+    });
+    
+    const uuid = v4();
+    const parties = {
+        [uuid]: {
+            type: "person", uuid, name: "bromosapien"
+        }
+    }
+    await sspPartyVirtualStore.getState().import(parties)
+    expect(((sspPartyVirtualStore.getState().all().length)) > 0).toBeTruthy()
+})
+

@@ -58,41 +58,40 @@ const composeGenericVirtualStore = <StoreType, DataType>(create: (storeCreator: 
         },
         import: (records) => {
             return synchronize((realObject: any) => {
-                realObject = records;
+                realObject = Object.values(records);
             })
         },
 
         retrieve: (itemIndex) => {
-            const item = store().all().find((x: any) => x[index] === itemIndex)
+            const item = store().find((x: any) => x[index] === itemIndex)
             if (!item) {
                 console.log("Cache Miss", itemIndex, "virtual-store")
             }
             return item;
         },
         find: (predicate) => {
-            return store().filter(predicate).pop();
+            return store().all().find(predicate);
         },
         findAndRemove: (predicate) => {
-            store()
-                .index()
-                .filter(
-                    itemIndex =>
-                        predicate(store().retrieve(itemIndex)!)
-                ).forEach(index => {
-                    store().remove(index);
+            store().all()
+                .filter(predicate).forEach((item: any) => {
+                    const itemIndex = item[index];
+                    store().remove(itemIndex);
                 });
         },
         filterIndex: (predicate) =>
-            store().all()
-                .filter(item => predicate).map((x: any) => x[index])
-        ,
-
-        findIndex: (predicate: ((e: DataType) => boolean)) => store()
-            .index()
-            .find(
-                itemIndex =>
-                    predicate(store().retrieve(itemIndex)!)
-            ),
+            store()
+                .all()
+                .filter(predicate)
+                .map((x: any) =>
+                    x[index]
+                )
+        , findIndex: (predicate: ((e: DataType) => boolean)) => {
+            const item: any = store()
+                .all()
+                .find(predicate)
+            return (item && item[index]) ? item[index] : undefined
+        },
         all: () => {
             const items = fetch()
             return typeof items === "undefined" ? [] : items
