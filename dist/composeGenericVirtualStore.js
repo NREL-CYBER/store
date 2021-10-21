@@ -193,7 +193,10 @@ var composeGenericVirtualStore = function composeGenericVirtualStore(create, opt
           return predicate(store().retrieve(itemIndex));
         });
       },
-      all: fetch,
+      all: function all() {
+        var items = fetch();
+        return typeof items === "undefined" ? [] : items;
+      },
       clear: function () {
         var _clear = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4() {
           return regeneratorRuntime.wrap(function _callee4$(_context4) {
