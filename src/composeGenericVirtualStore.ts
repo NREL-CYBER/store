@@ -23,12 +23,12 @@ const composeGenericVirtualStore = <StoreType, DataType>(create: (storeCreator: 
             set({ status, statusHistory: [...store().statusHistory.slice(0, 9), status] });
         },
         status,
-        filter: (predicate: ((e: DataType) => boolean)) => store().all().filter(predicate),
+        filter: (predicate: ((e: DataType) => boolean)) => fetch().filter(predicate),
         remove: async (idToRemove) => {
             store().setStatus("removing");
             return new Promise<string>(async (resolve, reject) => {
 
-                const remaining = store().all().filter(x => (x as any)[index] !== idToRemove);
+                const remaining = fetch().filter(x => (x as any)[index] !== idToRemove);
                 if (store().index().length === remaining.length) {
                     return false;
                 }
@@ -42,7 +42,7 @@ const composeGenericVirtualStore = <StoreType, DataType>(create: (storeCreator: 
         insert: (itemIndex, dataToAdd) => {
             return new Promise<string>(async (resolve, reject) => {
                 store().setStatus("inserting");
-                const newCollection = store().all().filter(x => (x as any)[index] !== itemIndex);
+                const newCollection = fetch().filter(x => (x as any)[index] !== itemIndex);
                 newCollection.push(dataToAdd);
                 await synchronize((realObject: any) => {
                     realObject = newCollection;
@@ -83,8 +83,7 @@ const composeGenericVirtualStore = <StoreType, DataType>(create: (storeCreator: 
                 });
         },
         filterIndex: (predicate) =>
-            store()
-                .all()
+            fetch()
                 .filter(item => predicate).map((x: any) => x[index])
         ,
 
@@ -94,9 +93,7 @@ const composeGenericVirtualStore = <StoreType, DataType>(create: (storeCreator: 
                 itemIndex =>
                     predicate(store().retrieve(itemIndex)!)
             ),
-        all: () => {
-            return fetch();
-        },
+        all: fetch,
         clear: async () => {
             store().setStatus("clearing");
             store().index().forEach((i) => {

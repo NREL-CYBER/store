@@ -51,7 +51,7 @@ var composeGenericVirtualStore = function composeGenericVirtualStore(create, opt
       },
       status: status,
       filter: function filter(predicate) {
-        return store().all().filter(predicate);
+        return fetch().filter(predicate);
       },
       remove: function () {
         var _remove = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(idToRemove) {
@@ -67,7 +67,7 @@ var composeGenericVirtualStore = function composeGenericVirtualStore(create, opt
                         while (1) {
                           switch (_context.prev = _context.next) {
                             case 0:
-                              remaining = store().all().filter(function (x) {
+                              remaining = fetch().filter(function (x) {
                                 return x[_index] !== idToRemove;
                               });
 
@@ -124,7 +124,7 @@ var composeGenericVirtualStore = function composeGenericVirtualStore(create, opt
                 switch (_context3.prev = _context3.next) {
                   case 0:
                     store().setStatus("inserting");
-                    newCollection = store().all().filter(function (x) {
+                    newCollection = fetch().filter(function (x) {
                       return x[_index] !== itemIndex;
                     });
                     newCollection.push(dataToAdd);
@@ -182,7 +182,7 @@ var composeGenericVirtualStore = function composeGenericVirtualStore(create, opt
         });
       },
       filterIndex: function filterIndex(predicate) {
-        return store().all().filter(function (item) {
+        return fetch().filter(function (item) {
           return predicate;
         }).map(function (x) {
           return x[_index];
@@ -193,9 +193,7 @@ var composeGenericVirtualStore = function composeGenericVirtualStore(create, opt
           return predicate(store().retrieve(itemIndex));
         });
       },
-      all: function all() {
-        return fetch();
-      },
+      all: fetch,
       clear: function () {
         var _clear = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4() {
           return regeneratorRuntime.wrap(function _callee4$(_context4) {
