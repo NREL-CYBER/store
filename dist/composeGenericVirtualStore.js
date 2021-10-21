@@ -80,9 +80,7 @@ var composeGenericVirtualStore = function composeGenericVirtualStore(create, opt
 
                             case 3:
                               _context.next = 5;
-                              return synchronize(function (realObject) {
-                                realObject = remaining;
-                              });
+                              return synchronize(remaining);
 
                             case 5:
                               store().setStatus("idle");
@@ -129,9 +127,7 @@ var composeGenericVirtualStore = function composeGenericVirtualStore(create, opt
                     });
                     newCollection.push(dataToAdd);
                     _context3.next = 5;
-                    return synchronize(function (realObject) {
-                      realObject = newCollection;
-                    });
+                    return synchronize(newCollection);
 
                   case 5:
                     store().setStatus("idle");
@@ -156,9 +152,7 @@ var composeGenericVirtualStore = function composeGenericVirtualStore(create, opt
         return store().insert(id, newItem);
       },
       "import": function _import(records) {
-        return synchronize(function (realObject) {
-          realObject = Object.values(records);
-        });
+        return synchronize(Object.values(records));
       },
       retrieve: function retrieve(itemIndex) {
         var item = store().find(function (x) {
