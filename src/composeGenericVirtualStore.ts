@@ -87,7 +87,7 @@ const composeGenericVirtualStore = <StoreType, DataType>(create: (storeCreator: 
             return (item && item[index]) ? item[index] : undefined
         },
         all: () => {
-            const items = fetch()
+            const items = fetch().filter(Boolean)
             return typeof items === "undefined" ? [] : items
         },
         clear: async () => {

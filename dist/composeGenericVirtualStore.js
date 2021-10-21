@@ -184,7 +184,7 @@ var composeGenericVirtualStore = function composeGenericVirtualStore(create, opt
         return item && item[_index] ? item[_index] : undefined;
       },
       all: function all() {
-        var items = fetch();
+        var items = fetch().filter(Boolean);
         return typeof items === "undefined" ? [] : items;
       },
       clear: function () {
