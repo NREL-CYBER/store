@@ -55,7 +55,8 @@ var composeGenericStore = function composeGenericStore(create, options) {
       initial = options.initial,
       workspace = options.workspace,
       indexes = options.indexes,
-      fetch = options.fetch;
+      fetch = options.fetch,
+      _paginate = options.paginate;
   var validator = options.validator;
   var collection = definition ? definition : schema.$id ? schema.$id : "errorCollection";
 
@@ -137,6 +138,11 @@ var composeGenericStore = function composeGenericStore(create, options) {
         });
       },
       status: status,
+      paginate: function paginate(options) {
+        return _paginate ? _paginate(options) : new Promise(function (resolve, reject) {
+          reject("Please Inject Pagination function");
+        });
+      },
       lazyLoadValidator: function lazyLoadValidator() {
         return new Promise(function (complete, reject) {
           if (store().status === "warming-validator") {

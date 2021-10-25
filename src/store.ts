@@ -2,6 +2,7 @@
 import { ErrorObject } from "ajv";
 import Validator, { RootSchemaObject } from "validator";
 import { Draft } from "immer";
+import { PaginateOptions } from "./composeStoreOptions";
 
 export type StoreStatus = "warming-workspace" | "warming-validator" |
   "booting" | "idle" | "fetching" | "importing" | "exporting" | "inserting" |
@@ -79,6 +80,11 @@ export type Store<dataType> = {
    * Get the active instance that was set by the setActive function
    */
   activeInstance: () => dataType | undefined
+  /**
+   * Use Injected function to query a larger collection. 
+   */
+  paginate: (options: PaginateOptions) => Promise<dataType[]>
+
   /**
    * Get an item by id that's already been cached 
    */

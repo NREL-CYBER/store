@@ -9,6 +9,10 @@ export interface StoreIndex {
     name: string;
     keypath: string | string[];
 }
+export interface PaginateOptions extends Record<string, any> {
+    page: number;
+    pageSize: number;
+}
 export interface composeStoreOptions<DataType> {
     schema: RootSchemaObject;
     initial?: {};
@@ -18,6 +22,7 @@ export interface composeStoreOptions<DataType> {
     indexes?: StoreIndex[];
     workspace?: any;
     fetch?: (id: string) => Promise<DataType | undefined>;
+    paginate?: (options: PaginateOptions) => Promise<DataType[]>;
 }
 export interface composeVirtualStoreOptions<DataType> {
     synchronize: ((realObject: any) => Promise<void>);

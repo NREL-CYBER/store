@@ -1,4 +1,5 @@
 import { ErrorObject } from "ajv";
+import { DataType } from "ajv/dist/compile/validate/dataType";
 import produce from "immer";
 import { v4 } from "uuid";
 import Validator from "validator";
@@ -15,7 +16,7 @@ import { Store, StoreListener, StoreStatus } from "./store";
 
 
 const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCreator<Store<DataType>>) => UseStore<Store<DataType>>, options: composeStoreOptions<DataType>) => {
-    const { schema, definition, initial, workspace, indexes, fetch } = options;
+    const { schema, definition, initial, workspace, indexes, fetch, paginate } = options;
     const validator = options.validator;
     const collection = definition ? definition : schema.$id ? schema.$id : "errorCollection"
     if (collection === "errorCollection") {
@@ -61,6 +62,13 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
             set({ status, statusHistory: [...store().statusHistory.slice(0, 9), status] });
         },
         status,
+        paginate: (options) => {
+            return paginate ?
+                paginate(options) :
+                new Promise<DataType[]>((resolve, reject) => {
+                    reject("Please Inject Pagination function");
+                })
+        },
         lazyLoadValidator: () => {
             return new Promise<Validator<DataType>>((complete, reject) => {
                 if (store().status === "warming-validator") {

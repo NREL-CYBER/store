@@ -26,9 +26,9 @@ export type VirtualStore<dataType> = {
     /**
      * Insert a data-item, optionally specify the identifier. uuid4 will be used by default
      */
-    insert: (id: string, dataItem: dataType, validate?: boolean) => Promise<string>,
+    insert: (id: string, dataItem: dataType, category?: string) => Promise<string>,
     /**
-     * Insert a data-item, optionally specify the identifier. uuid4 will be used by default
+     * Update a data-item, optionally specify the identifier. uuid4 will be used by default
      */
     update: (id: string, change: (item: Draft<dataType>) => void) => Promise<string>,
     /**
@@ -42,8 +42,7 @@ export type VirtualStore<dataType> = {
     /**
      * delete the collection (this may wipe a db table)
      */
-    clear: () => void
-    ,
+    clear: () => void,
 
     /**
      * filter items by predicate
