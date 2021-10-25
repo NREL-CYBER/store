@@ -3,6 +3,18 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+Object.defineProperty(exports, "Store", {
+  enumerable: true,
+  get: function get() {
+    return _store.Store;
+  }
+});
+Object.defineProperty(exports, "VirtualStore", {
+  enumerable: true,
+  get: function get() {
+    return _virtualStore.VirtualStore;
+  }
+});
 Object.defineProperty(exports, "composeStore", {
   enumerable: true,
   get: function get() {
@@ -15,28 +27,16 @@ Object.defineProperty(exports, "composeStoreOptions", {
     return _composeStoreOptions.composeStoreOptions;
   }
 });
-Object.defineProperty(exports, "composeVirtualStoreOptions", {
-  enumerable: true,
-  get: function get() {
-    return _composeStoreOptions.composeVirtualStoreOptions;
-  }
-});
 Object.defineProperty(exports, "composeVirtualStore", {
   enumerable: true,
   get: function get() {
     return _composeVirtualStore.composeVirtualStore;
   }
 });
-Object.defineProperty(exports, "Store", {
+Object.defineProperty(exports, "composeVirtualStoreOptions", {
   enumerable: true,
   get: function get() {
-    return _store.Store;
-  }
-});
-Object.defineProperty(exports, "VirtualStore", {
-  enumerable: true,
-  get: function get() {
-    return _virtualStore.VirtualStore;
+    return _composeStoreOptions.composeVirtualStoreOptions;
   }
 });
 

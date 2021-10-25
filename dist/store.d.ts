@@ -1,8 +1,8 @@
 import { ErrorObject } from "ajv";
 import Validator, { RootSchemaObject } from "validator";
 import { Draft } from "immer";
-import { PaginateOptions } from "./composeStoreOptions";
-export declare type StoreStatus = "warming-workspace" | "warming-validator" | "booting" | "idle" | "fetching" | "importing" | "exporting" | "inserting" | "removing" | "erroring" | "updating" | "workspacing" | "clearing" | "activating" | "missing";
+import { PageOptions, PaginatedQueryParameters } from "./composeStoreOptions";
+export declare type StoreStatus = "warming-workspace" | "warming-validator" | "booting" | "idle" | "fetching" | "importing" | "exporting" | "inserting" | "removing" | "erroring" | "updating" | "workspacing" | "clearing" | "activating" | "missing" | "querying";
 export declare type StoreListener<DataType> = (itemIndex: string, item: Partial<DataType>, status: StoreStatus) => Promise<string>;
 /**
  * add remove retrieve contract for identifiable data type
@@ -75,9 +75,12 @@ export declare type Store<dataType> = {
      */
     activeInstance: () => dataType | undefined;
     /**
-     * Use Injected function to query a larger collection.
+     * Use Injected function to query a larger collection. results stored in page as
      */
-    paginate: (options: PaginateOptions) => Promise<dataType[]>;
+    paginate: <QueryParameters extends PaginatedQueryParameters = {}>(page: PageOptions, options: QueryParameters) => void;
+    page?: dataType[];
+    pageIndex?: string[];
+    pageHash?: string;
     /**
      * Get an item by id that's already been cached
      */

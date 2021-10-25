@@ -7,5 +7,5 @@ import { Store } from "./store";
  * @param defininition name of the collection (singular) should match json schema (if unspecified, entire schema is considered a definition)
  * @param initial The initial value of the store
  */
-declare const composeGenericStore: <StoreType, DataType_1>(create: (storeCreator: StateCreator<Store<DataType_1>, import("zustand").SetState<Store<DataType_1>>>) => UseStore<Store<DataType_1>>, options: composeStoreOptions<DataType_1>) => UseStore<Store<DataType_1>>;
+declare const composeGenericStore: <StoreType, DataType>(create: (storeCreator: StateCreator<Store<DataType>, import("zustand").SetState<Store<DataType>>, import("zustand").GetState<Store<DataType>>, import("zustand").StoreApi<Store<DataType>>>) => UseStore<Store<DataType>, import("zustand").StoreApi<Store<DataType>>>, options: composeStoreOptions<DataType>) => UseStore<Store<DataType>, import("zustand").StoreApi<Store<DataType>>>;
 export { composeGenericStore };

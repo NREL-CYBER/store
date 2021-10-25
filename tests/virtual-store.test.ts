@@ -25,7 +25,7 @@ test("can insert a party into workspace via virtual store", async () => {
             })
         }
     });
-    const party = { type: "person", uuid: v4(), name: "broseph stalin" }
+    const party: Party = { type: "person", uuid: v4(), name: "broseph stalin" }
     sspPartyVirtualStore.getState().insert(party.uuid, party).then(() => {
         expect(((sspStoreApi.getState().workspace?.metadata?.parties?.length) || 0) > 0).toBeTruthy()
     })
@@ -51,7 +51,7 @@ test("can get parties from the virtual store", async () => {
             })
         }
     });
-    const party = { type: "person", uuid: v4(), name: "broseph stalin" }
+    const party: Party = { type: "person", uuid: v4(), name: "broseph stalin" }
     await sspPartyVirtualStore.getState().insert(party.uuid, party)
     expect(((sspPartyVirtualStore.getState().all().length)) > 0).toBeTruthy()
 
@@ -76,12 +76,13 @@ test("can import a dictionary of parties into the real store through the virtual
             })
         }
     });
-    
+
     const uuid = v4();
-    const parties = {
-        [uuid]: {
-            type: "person", uuid, name: "bromosapien"
-        }
+    const party: Party = {
+        type: "person", uuid, name: "bromosapien"
+    };
+    const parties: Record<string, Party> = {
+        [uuid]: party
     }
     await sspPartyVirtualStore.getState().import(parties)
     expect(((sspPartyVirtualStore.getState().all().length)) > 0).toBeTruthy()
@@ -107,12 +108,13 @@ test("can update an item into the real store through the virtual store", async (
             })
         }
     });
-    
+
     const uuid = v4();
-    const parties = {
-        [uuid]: {
-            type: "person", uuid, name: "bromosapien"
-        }
+    const party: Party = {
+        type: "person", uuid, name: "brolami"
+    };
+    const parties: Record<string, Party> = {
+        [uuid]: party
     }
     await sspPartyVirtualStore.getState().import(parties)
     expect(((sspPartyVirtualStore.getState().all().length)) > 0).toBeTruthy()

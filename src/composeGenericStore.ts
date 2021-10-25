@@ -1,5 +1,4 @@
 import { ErrorObject } from "ajv";
-import { DataType } from "ajv/dist/compile/validate/dataType";
 import produce from "immer";
 import { v4 } from "uuid";
 import Validator from "validator";
@@ -62,12 +61,25 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
             set({ status, statusHistory: [...store().statusHistory.slice(0, 9), status] });
         },
         status,
-        paginate: (options) => {
-            return paginate ?
-                paginate(options) :
-                new Promise<DataType[]>((resolve, reject) => {
-                    reject("Please Inject Pagination function");
-                })
+        paginate: (pageOptions, queryOptions) => {
+            store().setStatus("querying")
+            const pageHash = window.atob(JSON.stringify(pageOptions) + JSON.stringify(queryOptions));
+            if (store().pageHash === pageHash)
+                // We've already got the results to this query stored
+                return;
+            else
+                set({ pageHash, pageIndex: undefined, page: undefined })
+
+            paginate ?
+                paginate(pageOptions, queryOptions).then((page) => {
+                    set({ page, status: 'idle', pageIndex: page.map(x => (x as any)[pageOptions.identifier]) })
+                }).catch((error) => {
+                    console.log(error);
+                    set({ page: undefined, status: "erroring", errors: [{ message: "Pagination Error", dataPath: "", keyword: "", params: [], schemaPath: "" }] })
+                }) : () => {
+                    set({ status: "erroring" })
+                    throw (Error("Please inject paginate function to use this"))
+                }
         },
         lazyLoadValidator: () => {
             return new Promise<Validator<DataType>>((complete, reject) => {

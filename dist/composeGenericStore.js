@@ -17,7 +17,7 @@ function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArra
 
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
 
-function _iterableToArrayLimit(arr, i) { var _i = arr && (typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]); if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+function _iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
 
 function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
@@ -138,10 +138,42 @@ var composeGenericStore = function composeGenericStore(create, options) {
         });
       },
       status: status,
-      paginate: function paginate(options) {
-        return _paginate ? _paginate(options) : new Promise(function (resolve, reject) {
-          reject("Please Inject Pagination function");
+      paginate: function paginate(pageOptions, queryOptions) {
+        store().setStatus("querying");
+        var pageHash = window.atob(JSON.stringify(pageOptions) + JSON.stringify(queryOptions));
+        if (store().pageHash === pageHash) // We've already got the results to this query stored
+          return;else set({
+          pageHash: pageHash,
+          pageIndex: undefined,
+          page: undefined
         });
+        _paginate ? _paginate(pageOptions, queryOptions).then(function (page) {
+          set({
+            page: page,
+            status: 'idle',
+            pageIndex: page.map(function (x) {
+              return x[pageOptions.identifier];
+            })
+          });
+        })["catch"](function (error) {
+          console.log(error);
+          set({
+            page: undefined,
+            status: "erroring",
+            errors: [{
+              message: "Pagination Error",
+              dataPath: "",
+              keyword: "",
+              params: [],
+              schemaPath: ""
+            }]
+          });
+        }) : function () {
+          set({
+            status: "erroring"
+          });
+          throw Error("Please inject paginate function to use this");
+        };
       },
       lazyLoadValidator: function lazyLoadValidator() {
         return new Promise(function (complete, reject) {

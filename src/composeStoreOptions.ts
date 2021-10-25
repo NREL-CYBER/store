@@ -13,11 +13,12 @@ export interface StoreIndex {
     name: string
     keypath: string | string[],
 }
-export interface PaginateOptions extends Record<string, any> {
+export interface PageOptions {
     page: number,
+    identifier: string,
     pageSize: number,
 }
-
+export interface PaginatedQueryParameters extends Record<string, any> { }
 export interface composeStoreOptions<DataType> {
     schema: RootSchemaObject,
     initial?: {},
@@ -27,7 +28,7 @@ export interface composeStoreOptions<DataType> {
     indexes?: StoreIndex[]
     workspace?: any
     fetch?: (id: string) => Promise<DataType | undefined>
-    paginate?: (options: PaginateOptions) => Promise<DataType[]>
+    paginate?: <OptionType extends PaginatedQueryParameters = {}>(page: PageOptions, options: OptionType) => Promise<DataType[]>
 }
 
 
