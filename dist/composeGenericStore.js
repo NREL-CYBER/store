@@ -140,7 +140,7 @@ var composeGenericStore = function composeGenericStore(create, options) {
       status: status,
       paginate: function paginate(pageOptions, queryOptions) {
         store().setStatus("querying");
-        var pageHash = window.atob(JSON.stringify(pageOptions) + JSON.stringify(queryOptions));
+        var pageHash = window.btoa(JSON.stringify(pageOptions) + JSON.stringify(queryOptions));
         if (store().pageHash === pageHash) // We've already got the results to this query stored
           return;else set({
           pageHash: pageHash,

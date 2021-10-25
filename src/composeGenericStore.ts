@@ -63,7 +63,7 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
         status,
         paginate: (pageOptions, queryOptions) => {
             store().setStatus("querying")
-            const pageHash = window.atob(JSON.stringify(pageOptions) + JSON.stringify(queryOptions));
+            const pageHash = window.btoa(JSON.stringify(pageOptions) + JSON.stringify(queryOptions));
             if (store().pageHash === pageHash)
                 // We've already got the results to this query stored
                 return;
