@@ -187,16 +187,27 @@ var composeGenericStore = function composeGenericStore(create, options) {
           var start = page * pageSize;
           var end = page * pageSize + pageSize;
           var items = store().filter(function (item) {
-            var attributes = Object.keys(item);
-            return attributes.map(function (attribute) {
-              return queryOptions[attribute].includes(item[attribute]);
+            var attributes = Object.entries(queryOptions);
+            return attributes.map(function (_ref3) {
+              var _ref4 = _slicedToArray(_ref3, 2),
+                  attribute = _ref4[0],
+                  value = _ref4[1];
+
+              var hasAttribute = Object.keys(item).includes(attribute);
+              var itemValue = hasAttribute && item[attribute];
+              return itemValue === value;
             }).reduce(function (a, b) {
               return a && b;
             }, true);
           });
           var pageItems = items.slice(start, end);
+          var pageIndexEntry = pageItems.map(function (x) {
+            return x[identifier];
+          });
           set({
-            page: pageItems
+            page: pageItems,
+            status: "idle",
+            pageIndex: _objectSpread(_objectSpread({}, pageIndex), {}, _defineProperty({}, pageHash, pageIndexEntry))
           });
         };
       },
@@ -273,7 +284,7 @@ var composeGenericStore = function composeGenericStore(create, options) {
                 case 0:
                   store().setStatus("removing");
                   return _context3.abrupt("return", new Promise( /*#__PURE__*/function () {
-                    var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(resolve, reject) {
+                    var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(resolve, reject) {
                       var index, records, oldRecord, active;
                       return regeneratorRuntime.wrap(function _callee2$(_context2) {
                         while (1) {
@@ -323,7 +334,7 @@ var composeGenericStore = function composeGenericStore(create, options) {
                     }));
 
                     return function (_x3, _x4) {
-                      return _ref3.apply(this, arguments);
+                      return _ref5.apply(this, arguments);
                     };
                   }()));
 
@@ -344,7 +355,7 @@ var composeGenericStore = function composeGenericStore(create, options) {
       insert: function insert(itemIndex, dataToAdd) {
         var validate = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
         return new Promise( /*#__PURE__*/function () {
-          var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(resolve, reject) {
+          var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(resolve, reject) {
             var index, _store, lazyLoadValidator, valid, _records, _errors$pop, _validator3, errors;
 
             return regeneratorRuntime.wrap(function _callee4$(_context4) {
@@ -428,7 +439,7 @@ var composeGenericStore = function composeGenericStore(create, options) {
           }));
 
           return function (_x5, _x6) {
-            return _ref4.apply(this, arguments);
+            return _ref6.apply(this, arguments);
           };
         }());
       },
@@ -481,7 +492,7 @@ var composeGenericStore = function composeGenericStore(create, options) {
       updateWorkspace: function updateWorkspace(workspaceUpdate) {
         store().setStatus("workspacing");
         return new Promise( /*#__PURE__*/function () {
-          var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(resolve, reject) {
+          var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(resolve, reject) {
             var workspace, newWorkspace;
             return regeneratorRuntime.wrap(function _callee6$(_context6) {
               while (1) {
@@ -513,7 +524,7 @@ var composeGenericStore = function composeGenericStore(create, options) {
           }));
 
           return function (_x8, _x9) {
-            return _ref5.apply(this, arguments);
+            return _ref7.apply(this, arguments);
           };
         }());
       },
@@ -565,7 +576,7 @@ var composeGenericStore = function composeGenericStore(create, options) {
         var shouldValidate = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
         var shouldNotify = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
         return new Promise( /*#__PURE__*/function () {
-          var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee9(resolve, reject) {
+          var _ref8 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee9(resolve, reject) {
             var findRecordErrors, errors;
             return regeneratorRuntime.wrap(function _callee9$(_context9) {
               while (1) {
@@ -574,7 +585,7 @@ var composeGenericStore = function composeGenericStore(create, options) {
                     store().setStatus("importing");
 
                     findRecordErrors = /*#__PURE__*/function () {
-                      var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7(entries) {
+                      var _ref9 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7(entries) {
                         var validator;
                         return regeneratorRuntime.wrap(function _callee7$(_context7) {
                           while (1) {
@@ -601,7 +612,7 @@ var composeGenericStore = function composeGenericStore(create, options) {
                       }));
 
                       return function findRecordErrors(_x12) {
-                        return _ref7.apply(this, arguments);
+                        return _ref9.apply(this, arguments);
                       };
                     }();
 
@@ -632,14 +643,14 @@ var composeGenericStore = function composeGenericStore(create, options) {
 
                     if (errors.length == 0 && shouldNotify) {
                       Object.entries(entries).forEach( /*#__PURE__*/function () {
-                        var _ref9 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8(_ref8) {
-                          var _ref10, itemIndex, importItem;
+                        var _ref11 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8(_ref10) {
+                          var _ref12, itemIndex, importItem;
 
                           return regeneratorRuntime.wrap(function _callee8$(_context8) {
                             while (1) {
                               switch (_context8.prev = _context8.next) {
                                 case 0:
-                                  _ref10 = _slicedToArray(_ref8, 2), itemIndex = _ref10[0], importItem = _ref10[1];
+                                  _ref12 = _slicedToArray(_ref10, 2), itemIndex = _ref12[0], importItem = _ref12[1];
                                   _context8.next = 3;
                                   return Promise.all(store().listeners.map(function (callback) {
                                     return callback(itemIndex, _objectSpread({}, importItem), "inserting");
@@ -654,7 +665,7 @@ var composeGenericStore = function composeGenericStore(create, options) {
                         }));
 
                         return function (_x13) {
-                          return _ref9.apply(this, arguments);
+                          return _ref11.apply(this, arguments);
                         };
                       }());
                     }
@@ -671,7 +682,7 @@ var composeGenericStore = function composeGenericStore(create, options) {
           }));
 
           return function (_x10, _x11) {
-            return _ref6.apply(this, arguments);
+            return _ref8.apply(this, arguments);
           };
         }());
       },

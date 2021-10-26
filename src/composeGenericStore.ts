@@ -84,11 +84,16 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
                     const start = page * pageSize
                     const end = page * pageSize + pageSize;
                     const items = store().filter(item => {
-                        const attributes = Object.keys(item)
-                        return attributes.map(attribute => queryOptions[attribute].includes((item as any)[attribute])).reduce((a, b,) => a && b, true)
+                        const attributes = Object.entries(queryOptions)
+                        return attributes.map(([attribute, value]) => {
+                            const hasAttribute = Object.keys(item).includes(attribute)
+                            const itemValue = hasAttribute && (item as any)[attribute]
+                            return itemValue === value
+                        }).reduce((a, b) => a && b, true);
                     });
                     const pageItems = items.slice(start, end)
-                    set({ page: pageItems })
+                    const pageIndexEntry = pageItems.map(x => (x as any)[identifier])
+                    set({ page: pageItems, status: "idle", pageIndex: { ...pageIndex, [pageHash]: pageIndexEntry } })
                 }
         },
         lazyLoadValidator: () => {
