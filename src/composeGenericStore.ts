@@ -61,24 +61,34 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
             set({ status, statusHistory: [...store().statusHistory.slice(0, 9), status] });
         },
         status,
-        paginate: (pageOptions, queryOptions) => {
-            store().setStatus("querying")
-            const pageHash = window.btoa(JSON.stringify(pageOptions) + JSON.stringify(queryOptions));
-            if (store().pageHash === pageHash)
+        paginate: ({ identifier, page, pageSize }, queryOptions) => {
+            const pageHash = window.btoa(JSON.stringify({ page, pageSize }) + JSON.stringify(queryOptions));
+            const pageIndex = store().pageIndex || {};
+            const pageHashIndex = pageIndex[pageHash];
+            if (typeof pageHashIndex !== "undefined")
                 // We've already got the results to this query stored
-                return;
+                set({ page: pageHashIndex.map(id => store().retrieve(id)).filter(Boolean) as DataType[] });
             else
                 set({ pageHash, pageIndex: undefined, page: undefined })
-
+            store().setStatus("querying")
             paginate ?
-                paginate(pageOptions, queryOptions).then((page) => {
-                    set({ page, status: 'idle', pageIndex: page.map(x => (x as any)[pageOptions.identifier]) })
+                paginate({ page, pageSize, identifier }, queryOptions).then((page) => {
+                    set({ page, status: 'idle', pageIndex: { ...store().pageIndex, [pageHash]: page.map(x => (x as any)[identifier]) } })
                 }).catch((error) => {
-                    console.log(error);
-                    set({ page: undefined, status: "erroring", errors: [{ message: "Pagination Error", dataPath: "", keyword: "", params: [], schemaPath: "" }] })
+                    set({
+                        page: undefined,
+                        status: "erroring",
+                        errors: [{ message: "Pagination Error", dataPath: "", keyword: "", params: [], schemaPath: "" }]
+                    })
                 }) : () => {
-                    set({ status: "erroring" })
-                    throw (Error("Please inject paginate function to use this"))
+                    const start = page * pageSize
+                    const end = page * pageSize + pageSize;
+                    const items = store().filter(item => {
+                        const attributes = Object.keys(item)
+                        return attributes.map(attribute => queryOptions[attribute].includes((item as any)[attribute])).reduce((a, b,) => a && b, true)
+                    });
+                    const pageItems = items.slice(start, end)
+                    set({ page: pageItems })
                 }
         },
         lazyLoadValidator: () => {
@@ -173,7 +183,7 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
                     records[itemIndex] = dataToAdd;
                     if (!index.includes(itemIndex))
                         index = [...index, itemIndex];
-                    set({ index, records });
+                    set({ index, records, pageIndex: undefined });
                     await Promise.all(store().listeners.map(callback => callback(itemIndex, { ...dataToAdd }, "inserting")))
                     store().setStatus("idle")
                     resolve(itemIndex);
@@ -275,7 +285,7 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
                     return [];
                 }
                 const errors: ErrorObject<string, Record<string, any>>[] = shouldValidate ? await findRecordErrors(records) : [];
-                set({ errors, records: entries, index: Object.keys(entries) });
+                set({ errors, records: entries, index: Object.keys(entries), pageIndex: undefined });
                 if (errors.length == 0 && shouldNotify) {
                     Object.entries(entries).forEach(async ([itemIndex, importItem]) => {
                         await Promise.all(store().listeners.map(callback => callback(itemIndex, { ...importItem }, "inserting")))

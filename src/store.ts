@@ -85,7 +85,7 @@ export type Store<dataType> = {
    */
   paginate: <QueryParameters extends PaginatedQueryParameters = {}>(page: PageOptions, options: QueryParameters) => void
   page?: dataType[]
-  pageIndex?: string[]
+  pageIndex?: Record<string, string[]>
   pageHash?: string
   /**
    * Get an item by id that's already been cached 
