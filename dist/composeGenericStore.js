@@ -384,7 +384,8 @@ var composeGenericStore = function composeGenericStore(create, options) {
                     if (!index.includes(itemIndex)) index = [].concat(_toConsumableArray(index), [itemIndex]);
                     set({
                       index: index,
-                      records: _records
+                      records: _records,
+                      pageIndex: undefined
                     });
                     _context4.next = 18;
                     return Promise.all(store().listeners.map(function (callback) {
@@ -625,7 +626,8 @@ var composeGenericStore = function composeGenericStore(create, options) {
                     set({
                       errors: errors,
                       records: entries,
-                      index: Object.keys(entries)
+                      index: Object.keys(entries),
+                      pageIndex: undefined
                     });
 
                     if (errors.length == 0 && shouldNotify) {
