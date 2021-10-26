@@ -21,11 +21,10 @@ export interface composeStoreOptions<DataType> {
     initial?: {};
     definition?: string;
     validator?: Validator<DataType>;
-    vanilla?: boolean;
     indexes?: StoreIndex[];
     workspace?: any;
     fetch?: (id: string) => Promise<DataType | undefined>;
-    paginate?: <OptionType extends PaginatedQueryParameters = {}>(page: PageOptions, options: OptionType) => Promise<DataType[]>;
+    query?: <OptionType extends PaginatedQueryParameters = {}>(page: PageOptions, options: OptionType, fullText?: string) => Promise<DataType[]>;
 }
 export interface composeVirtualStoreOptions<DataType> {
     synchronize: ((realObject: any) => Promise<void>);

@@ -1,12 +1,15 @@
 import 'regenerator-runtime/runtime'
-import { composeVanillaStore } from "../dist/composeVanillaStore";
+import { composeStore } from "../dist/composeStore";
 import groceriesSchema from "./schemas/groceries-schema.json";
 export type Fruit = string;
 export interface Veggie {
     veggieName: string
     veggieLike: boolean
 }
-export const barocolli: Veggie = { veggieLike: true, veggieName: "baracoli obama" };
+export const barocolli: Veggie = {
+    veggieLike: true,
+    veggieName: "baracoli obama"
+};
 export const tomato: Fruit = "Heirloom Tomato";
 
 export interface Groceries {
@@ -23,11 +26,24 @@ export const invalidGroceryList = {
     fruits: [tomato, { veggieLike: "yeee", veggieName: "Chocolate" }]
 }
 
+
+test("Paginating store works with default algo", async () => {
+    const veggieStoreAPI = composeStore<Veggie>(
+        {
+            schema: groceriesSchema,
+            definition: "veggie",
+            initial: { ["obama"]: barocolli }
+        });
+    const import_export_Record = JSON.parse(veggieStoreAPI.getState().export()) as Record<string, Veggie>;
+    const veggiesPaginated = await veggieStoreAPI.getState().query({ page: 0, identifier: "veggieName", pageSize: 1 }, { veggieName: "baracoli obama" })
+    expect(import_export_Record["obama"].veggieName === "baracoli obama");
+})
+
+
 test("After insterting a valid brocoli, it is found in the veggie store", async () => {
-    const veggieStoreAPI = composeVanillaStore<Veggie>({
+    const veggieStoreAPI = composeStore<Veggie>({
         schema: groceriesSchema,
         definition: "veggie",
-        vanilla: true
     });
 
     await veggieStoreAPI.getState().insert("obama", barocolli);
@@ -35,7 +51,7 @@ test("After insterting a valid brocoli, it is found in the veggie store", async 
 })
 
 test("Grocery Workspace comes with empty veggie array", async () => {
-    const veggieStoreAPI = composeVanillaStore<Groceries>({
+    const veggieStoreAPI = composeStore<Groceries>({
         schema: groceriesSchema
     });
     const workspace = await veggieStoreAPI.getState().lazyLoadWorkspace();
@@ -44,9 +60,8 @@ test("Grocery Workspace comes with empty veggie array", async () => {
 
 
 test("Brocolli set as initial value is able to be retrieved after init", () => {
-    const veggieStoreAPI = composeVanillaStore<Veggie>(
+    const veggieStoreAPI = composeStore<Veggie>(
         {
-            vanilla: true,
             schema: groceriesSchema,
             definition: "veggie",
             initial: { ["obama"]: barocolli }
@@ -55,9 +70,8 @@ test("Brocolli set as initial value is able to be retrieved after init", () => {
     expect(veggieStoreAPI.getState().retrieve("obama")?.veggieName === "baracoli obama");
 })
 test("Brocolli set as exported  as a key value pair on export", () => {
-    const veggieStoreAPI = composeVanillaStore<Veggie>(
+    const veggieStoreAPI = composeStore<Veggie>(
         {
-            vanilla: true,
             schema: groceriesSchema,
             definition: "veggie",
             initial: { ["obama"]: barocolli }
@@ -68,9 +82,8 @@ test("Brocolli set as exported  as a key value pair on export", () => {
 })
 
 test("Exporting and importing a store validates", () => {
-    const veggieStoreAPI = composeVanillaStore<Veggie>(
+    const veggieStoreAPI = composeStore<Veggie>(
         {
-            vanilla: true,
             schema: groceriesSchema,
             definition: "veggie",
             initial: { ["obama"]: barocolli }

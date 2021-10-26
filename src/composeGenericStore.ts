@@ -1,3 +1,4 @@
+import { resolvePlugin } from "@babel/core";
 import { ErrorObject } from "ajv";
 import produce from "immer";
 import { v4 } from "uuid";
@@ -15,7 +16,7 @@ import { Store, StoreListener, StoreStatus } from "./store";
 
 
 const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCreator<Store<DataType>>) => UseStore<Store<DataType>>, options: composeStoreOptions<DataType>) => {
-    const { schema, definition, initial, workspace, indexes, fetch, paginate } = options;
+    const { schema, definition, initial, workspace, indexes, fetch, query } = options;
     const validator = options.validator;
     const collection = definition ? definition : schema.$id ? schema.$id : "errorCollection"
     if (collection === "errorCollection") {
@@ -61,40 +62,65 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
             set({ status, statusHistory: [...store().statusHistory.slice(0, 9), status] });
         },
         status,
-        paginate: ({ identifier, page, pageSize }, queryOptions) => {
-            const pageHash = window.btoa(JSON.stringify({ page, pageSize }) + JSON.stringify(queryOptions));
-            const pageIndex = store().pageIndex || {};
-            const pageHashIndex = pageIndex[pageHash];
-            if (typeof pageHashIndex !== "undefined")
-                // We've already got the results to this query stored
-                set({ page: pageHashIndex.map(id => store().retrieve(id)).filter(Boolean) as DataType[] });
-            else
-                set({ pageHash, pageIndex: undefined, page: undefined })
-            store().setStatus("querying")
-            paginate ?
-                paginate({ page, pageSize, identifier }, queryOptions).then((page) => {
-                    set({ page, status: 'idle', pageIndex: { ...store().pageIndex, [pageHash]: page.map(x => (x as any)[identifier]) } })
-                }).catch((error) => {
-                    set({
-                        page: undefined,
-                        status: "erroring",
-                        errors: [{ message: "Pagination Error", dataPath: "", keyword: "", params: [], schemaPath: "" }]
-                    })
-                }) : () => {
-                    const start = page * pageSize
-                    const end = page * pageSize + pageSize;
-                    const items = store().filter(item => {
+        queryResults: () => {
+            const { queryHash, queryIndex } = store();
+            const queryIdentifiers = queryIndex ? queryHash ? queryIndex[queryHash] : [] : []
+            return queryIdentifiers.map(id => store().retrieve(id)).filter(Boolean) as DataType[]
+        },
+        query: ({ identifier, page, pageSize }, queryOptions, fullText) => {
+            return new Promise((resolve, reject) => {
+                const queryHash = window.btoa(JSON.stringify({ page, pageSize }) + JSON.stringify(queryOptions));
+                const queryIndex = store().queryIndex || {};
+                const queryHashIndex = queryIndex[queryHash];
+                if (typeof queryHashIndex !== "undefined")
+                    // We've already got the results to this query stored
+                    resolve(store().queryResults())
+
+                store().setStatus("querying")
+                query ?
+                    query({ page, pageSize, identifier }, queryOptions).then((queryResults) => {
+                        set({
+                            status: 'idle',
+                            queryIndex: {
+                                ...store().queryIndex,
+                                [queryHash]: queryResults.map(x => (x as any)[identifier])
+                            }
+                        })
+                        resolve(queryResults);
+                    }).catch((error) => {
+                        set({
+                            status: "erroring",
+                            errors: [{
+                                message: "Pagination Error",
+                                dataPath: "",
+                                keyword: "",
+                                params: [],
+                                schemaPath: ""
+                            }]
+                        })
+                        reject(error)
+                    }) : (() => {
+                        const start = page * pageSize
+                        const end = page * pageSize + pageSize;
                         const attributes = Object.entries(queryOptions)
-                        return attributes.map(([attribute, value]) => {
-                            const hasAttribute = Object.keys(item).includes(attribute)
-                            const itemValue = hasAttribute && (item as any)[attribute]
-                            return itemValue === value
-                        }).reduce((a, b) => a && b, true);
-                    });
-                    const pageItems = items.slice(start, end)
-                    const pageIndexEntry = pageItems.map(x => (x as any)[identifier])
-                    set({ page: pageItems, status: "idle", pageIndex: { ...pageIndex, [pageHash]: pageIndexEntry } })
-                }
+                        const items = store().filter(item => {
+                            return attributes.map(([attribute, value]) => {
+                                const itemValue = (item as any)[attribute]
+                                if (value.length === 0)
+                                    return true
+
+                                if (typeof itemValue === "string" && typeof value === "string")
+                                    return itemValue === value || itemValue.toLowerCase().includes(value.toLowerCase());
+
+                                return itemValue === value || value.includes(itemValue)
+                            }).reduce((a, b) => a && b, true);
+                        });
+                        const queryResults = items.slice(start, end)
+                        const queryIndexEntry = queryResults.map(x => (x as any)[identifier])
+                        set({ status: "idle", queryIndex: { ...queryIndex, [queryHash]: queryIndexEntry } })
+                        resolve(queryResults);
+                    })()
+            })
         },
         lazyLoadValidator: () => {
             return new Promise<Validator<DataType>>((complete, reject) => {
@@ -177,7 +203,7 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
                 resolve("succuss");
             })
         },
-        insert: (itemIndex, dataToAdd, validate = false) => {
+        insert: (itemIndex, dataToAdd, validate = false, clearCache = true) => {
             return new Promise<string>(async (resolve, reject) => {
                 store().setStatus("inserting");
                 let index = [...store().index];
@@ -188,7 +214,7 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
                     records[itemIndex] = dataToAdd;
                     if (!index.includes(itemIndex))
                         index = [...index, itemIndex];
-                    set({ index, records, pageIndex: undefined });
+                    set({ index, records, queryIndex: undefined });
                     await Promise.all(store().listeners.map(callback => callback(itemIndex, { ...dataToAdd }, "inserting")))
                     store().setStatus("idle")
                     resolve(itemIndex);
@@ -277,7 +303,7 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
             const { active } = store();
             return active ? store().retrieve(active) : undefined;
         },
-        import: (entries, shouldValidate = true, shouldNotify = false) => {
+        import: (entries, shouldValidate = true, shouldNotify = false, shouldClearCache = true) => {
             return new Promise(async (resolve, reject) => {
                 store().setStatus("importing");
                 const findRecordErrors = async (entries: Record<string, DataType>) => {
@@ -290,7 +316,7 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
                     return [];
                 }
                 const errors: ErrorObject<string, Record<string, any>>[] = shouldValidate ? await findRecordErrors(records) : [];
-                set({ errors, records: entries, index: Object.keys(entries), pageIndex: undefined });
+                set({ errors, records: entries, index: Object.keys(entries), queryIndex: undefined });
                 if (errors.length == 0 && shouldNotify) {
                     Object.entries(entries).forEach(async ([itemIndex, importItem]) => {
                         await Promise.all(store().listeners.map(callback => callback(itemIndex, { ...importItem }, "inserting")))

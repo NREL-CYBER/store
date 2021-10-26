@@ -56,7 +56,7 @@ var composeGenericStore = function composeGenericStore(create, options) {
       workspace = options.workspace,
       indexes = options.indexes,
       fetch = options.fetch,
-      _paginate = options.paginate;
+      _query = options.query;
   var validator = options.validator;
   var collection = definition ? definition : schema.$id ? schema.$id : "errorCollection";
 
@@ -138,78 +138,83 @@ var composeGenericStore = function composeGenericStore(create, options) {
         });
       },
       status: status,
-      paginate: function paginate(_ref2, queryOptions) {
+      queryResults: function queryResults() {
+        var _store = store(),
+            queryHash = _store.queryHash,
+            queryIndex = _store.queryIndex;
+
+        var queryIdentifiers = queryIndex ? queryHash ? queryIndex[queryHash] : [] : [];
+        return queryIdentifiers.map(function (id) {
+          return store().retrieve(id);
+        }).filter(Boolean);
+      },
+      query: function query(_ref2, queryOptions, fullText) {
         var identifier = _ref2.identifier,
             page = _ref2.page,
             pageSize = _ref2.pageSize;
-        var pageHash = window.btoa(JSON.stringify({
-          page: page,
-          pageSize: pageSize
-        }) + JSON.stringify(queryOptions));
-        var pageIndex = store().pageIndex || {};
-        var pageHashIndex = pageIndex[pageHash];
-        if (typeof pageHashIndex !== "undefined") // We've already got the results to this query stored
-          set({
-            page: pageHashIndex.map(function (id) {
-              return store().retrieve(id);
-            }).filter(Boolean)
-          });else set({
-          pageHash: pageHash,
-          pageIndex: undefined,
-          page: undefined
-        });
-        store().setStatus("querying");
-        _paginate ? _paginate({
-          page: page,
-          pageSize: pageSize,
-          identifier: identifier
-        }, queryOptions).then(function (page) {
-          set({
+        return new Promise(function (resolve, reject) {
+          var queryHash = window.btoa(JSON.stringify({
             page: page,
-            status: 'idle',
-            pageIndex: _objectSpread(_objectSpread({}, store().pageIndex), {}, _defineProperty({}, pageHash, page.map(function (x) {
-              return x[identifier];
-            })))
-          });
-        })["catch"](function (error) {
-          set({
-            page: undefined,
-            status: "erroring",
-            errors: [{
-              message: "Pagination Error",
-              dataPath: "",
-              keyword: "",
-              params: [],
-              schemaPath: ""
-            }]
-          });
-        }) : function () {
-          var start = page * pageSize;
-          var end = page * pageSize + pageSize;
-          var items = store().filter(function (item) {
+            pageSize: pageSize
+          }) + JSON.stringify(queryOptions));
+          var queryIndex = store().queryIndex || {};
+          var queryHashIndex = queryIndex[queryHash];
+          if (typeof queryHashIndex !== "undefined") // We've already got the results to this query stored
+            resolve(store().queryResults());
+          store().setStatus("querying");
+          _query ? _query({
+            page: page,
+            pageSize: pageSize,
+            identifier: identifier
+          }, queryOptions).then(function (queryResults) {
+            set({
+              status: 'idle',
+              queryIndex: _objectSpread(_objectSpread({}, store().queryIndex), {}, _defineProperty({}, queryHash, queryResults.map(function (x) {
+                return x[identifier];
+              })))
+            });
+            resolve(queryResults);
+          })["catch"](function (error) {
+            set({
+              status: "erroring",
+              errors: [{
+                message: "Pagination Error",
+                dataPath: "",
+                keyword: "",
+                params: [],
+                schemaPath: ""
+              }]
+            });
+            reject(error);
+          }) : function () {
+            var start = page * pageSize;
+            var end = page * pageSize + pageSize;
             var attributes = Object.entries(queryOptions);
-            return attributes.map(function (_ref3) {
-              var _ref4 = _slicedToArray(_ref3, 2),
-                  attribute = _ref4[0],
-                  value = _ref4[1];
+            var items = store().filter(function (item) {
+              return attributes.map(function (_ref3) {
+                var _ref4 = _slicedToArray(_ref3, 2),
+                    attribute = _ref4[0],
+                    value = _ref4[1];
 
-              var hasAttribute = Object.keys(item).includes(attribute);
-              var itemValue = hasAttribute && item[attribute];
-              return itemValue === value;
-            }).reduce(function (a, b) {
-              return a && b;
-            }, true);
-          });
-          var pageItems = items.slice(start, end);
-          var pageIndexEntry = pageItems.map(function (x) {
-            return x[identifier];
-          });
-          set({
-            page: pageItems,
-            status: "idle",
-            pageIndex: _objectSpread(_objectSpread({}, pageIndex), {}, _defineProperty({}, pageHash, pageIndexEntry))
-          });
-        };
+                var itemValue = item[attribute];
+                if (value.length === 0) return true;
+                if (typeof itemValue === "string" && typeof value === "string") return itemValue === value || itemValue.toLowerCase().includes(value.toLowerCase());
+                return itemValue === value || value.includes(itemValue);
+              }).reduce(function (a, b) {
+                return a && b;
+              }, true);
+            });
+            var queryResults = items.slice(start, end);
+            var queryIndexEntry = queryResults.map(function (x) {
+              return x[identifier];
+            });
+            set({
+              status: "idle",
+              queryIndex: _objectSpread(_objectSpread({}, queryIndex), {}, _defineProperty({}, queryHash, queryIndexEntry))
+            });
+            resolve(queryResults);
+          }();
+        });
       },
       lazyLoadValidator: function lazyLoadValidator() {
         return new Promise(function (complete, reject) {
@@ -354,9 +359,10 @@ var composeGenericStore = function composeGenericStore(create, options) {
       }(),
       insert: function insert(itemIndex, dataToAdd) {
         var validate = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+        var clearCache = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : true;
         return new Promise( /*#__PURE__*/function () {
           var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(resolve, reject) {
-            var index, _store, lazyLoadValidator, valid, _records, _errors$pop, _validator3, errors;
+            var index, _store2, lazyLoadValidator, valid, _records, _errors$pop, _validator3, errors;
 
             return regeneratorRuntime.wrap(function _callee4$(_context4) {
               while (1) {
@@ -364,7 +370,7 @@ var composeGenericStore = function composeGenericStore(create, options) {
                   case 0:
                     store().setStatus("inserting");
                     index = _toConsumableArray(store().index);
-                    _store = store(), lazyLoadValidator = _store.lazyLoadValidator;
+                    _store2 = store(), lazyLoadValidator = _store2.lazyLoadValidator;
 
                     if (!validate) {
                       _context4.next = 9;
@@ -396,7 +402,7 @@ var composeGenericStore = function composeGenericStore(create, options) {
                     set({
                       index: index,
                       records: _records,
-                      pageIndex: undefined
+                      queryIndex: undefined
                     });
                     _context4.next = 18;
                     return Promise.all(store().listeners.map(function (callback) {
@@ -567,14 +573,15 @@ var composeGenericStore = function composeGenericStore(create, options) {
         });
       },
       activeInstance: function activeInstance() {
-        var _store2 = store(),
-            active = _store2.active;
+        var _store3 = store(),
+            active = _store3.active;
 
         return active ? store().retrieve(active) : undefined;
       },
       "import": function _import(entries) {
         var shouldValidate = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
         var shouldNotify = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+        var shouldClearCache = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : true;
         return new Promise( /*#__PURE__*/function () {
           var _ref8 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee9(resolve, reject) {
             var findRecordErrors, errors;
@@ -638,7 +645,7 @@ var composeGenericStore = function composeGenericStore(create, options) {
                       errors: errors,
                       records: entries,
                       index: Object.keys(entries),
-                      pageIndex: undefined
+                      queryIndex: undefined
                     });
 
                     if (errors.length == 0 && shouldNotify) {

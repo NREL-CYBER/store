@@ -83,10 +83,10 @@ export type Store<dataType> = {
   /**
    * Use Injected function to query a larger collection. results stored in page as
    */
-  paginate: <QueryParameters extends PaginatedQueryParameters = {}>(page: PageOptions, options: QueryParameters) => void
-  page?: dataType[]
-  pageIndex?: Record<string, string[]>
-  pageHash?: string
+  query: <QueryParameters extends PaginatedQueryParameters = {}>(page: PageOptions, options: QueryParameters, fulltext?: string) => Promise<dataType[]>
+  queryResults: () => dataType[]
+  queryIndex?: Record<string, string[]>
+  queryHash?: string
   /**
    * Get an item by id that's already been cached 
    */
@@ -123,11 +123,6 @@ export type Store<dataType> = {
    * set the workspace directly (from serialized workspace)
    */
   setWorkspaceInstance: (instance: dataType, notify?: boolean) => void,
-  /**
-   * filter all string properties by query (perhaps a full fuzzy index in the future)
-   */
-  search: (query: string) => [string, dataType][]
-  ,
   /**
    * save the schema from initialization so we don't have to wait for the validator to boot
    * when we make a form
