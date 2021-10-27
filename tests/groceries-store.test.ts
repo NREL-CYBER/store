@@ -32,11 +32,11 @@ test("Paginating store works with default algo", async () => {
         {
             schema: groceriesSchema,
             definition: "veggie",
-            initial: { ["obama"]: barocolli }
+            initial: { ["obama"]: barocolli },
+            identifier: "veggieName"
         });
-    const import_export_Record = JSON.parse(veggieStoreAPI.getState().export()) as Record<string, Veggie>;
-    const veggiesPaginated = await veggieStoreAPI.getState().query({ page: 0, identifier: "veggieName", pageSize: 1 }, { veggieName: "baracoli obama" })
-    expect(import_export_Record["obama"].veggieName === "baracoli obama");
+    const veggiesPaginated = await veggieStoreAPI.getState().query({ page: 0, pageSize: 1 }, { veggieName: "baracoli obama" })
+    expect(veggiesPaginated.map((x) => x.veggieName).includes("baracoli obama"));
 })
 
 

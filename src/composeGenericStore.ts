@@ -15,7 +15,7 @@ import { Store, StoreListener, StoreStatus } from "./store";
 
 
 const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCreator<Store<DataType>>) => UseBoundStore<Store<DataType>>, options: composeStoreOptions<DataType>) => {
-    const { schema, definition, initial, workspace, indexes, fetch, query } = options;
+    const { schema, definition, initial, workspace, fetch, query, identifier } = options;
     const validator = options.validator;
     const collection = definition ? definition : schema.$id ? schema.$id : "errorCollection"
     if (collection === "errorCollection") {
@@ -56,12 +56,15 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
         index,
         records,
         errors: [],
+        identifier,
         statusHistory: [],
         setStatus: (status) => {
             set({ status, statusHistory: [...store().statusHistory.slice(0, 9), status] });
         },
         status,
-        query: ({ identifier, page, pageSize }, queryOptions, fullText) => {
+        query: ({ page, pageSize }, queryOptions, fullText) => {
+            if (!identifier)
+                throw (Error("Store must be composed with an identifer to index query results"))
             const queryHash = window.btoa(JSON.stringify({ page, pageSize }) + JSON.stringify(queryOptions));
             const queryIndex = store().queryIndex || {};
             const queryHashIndex = queryIndex[queryHash];
@@ -77,7 +80,7 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
 
             return new Promise((resolve, reject) => {
                 query ?
-                    query({ page, pageSize, identifier }, queryOptions).then((queryResults) => {
+                    query({ page, pageSize }, queryOptions).then((queryResults) => {
                         set({
                             status: 'idle',
                             queryIndex: {
@@ -141,26 +144,7 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
             )
         },
         indexes: {},
-        listeners: [
-            // (id, item, status) => {
-            //     switch (status) {
-            //         case "clearing":
-            //             break;
-            //         case "inserting":
-            //             openDB.then((db) => {
-            //                 db.put(collection, item, id)
-            //             })
-            //             break;
-            //         case "removing":
-            //             openDB.then((db) => {
-            //                 db.delete(collection, id)
-            //             })
-            //             break;
-            //         default:
-            //             break;
-            //     }
-            // }
-        ],
+        listeners: [],
         search: (query: string) => store()
             .filterIndex(x => Object.values(x).join("").toLowerCase()
                 .includes(query.toLowerCase()))

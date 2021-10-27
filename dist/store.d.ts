@@ -9,6 +9,12 @@ export declare type StoreListener<DataType> = (itemIndex: string, item: Partial<
  */
 export declare type Store<dataType> = {
     /**
+    * This is a keypath to define the primary key of the collection
+    * Its optional because sometimes you don't have one.
+    * It is used for the query function so far.
+    */
+    identifier?: string;
+    /**
      * Collection name (object name singular) ie "catalog"
      * Used in serialization & validation MUST match property on schema
      */

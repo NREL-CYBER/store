@@ -54,9 +54,9 @@ var composeGenericStore = function composeGenericStore(create, options) {
       definition = options.definition,
       initial = options.initial,
       workspace = options.workspace,
-      indexes = options.indexes,
       fetch = options.fetch,
-      _query = options.query;
+      _query = options.query,
+      identifier = options.identifier;
   var validator = options.validator;
   var collection = definition ? definition : schema.$id ? schema.$id : "errorCollection";
 
@@ -130,6 +130,7 @@ var composeGenericStore = function composeGenericStore(create, options) {
       index: index,
       records: records,
       errors: [],
+      identifier: identifier,
       statusHistory: [],
       setStatus: function setStatus(status) {
         set({
@@ -139,9 +140,9 @@ var composeGenericStore = function composeGenericStore(create, options) {
       },
       status: status,
       query: function query(_ref2, queryOptions, fullText) {
-        var identifier = _ref2.identifier,
-            page = _ref2.page,
+        var page = _ref2.page,
             pageSize = _ref2.pageSize;
+        if (!identifier) throw Error("Store must be composed with an identifer to index query results");
         var queryHash = window.btoa(JSON.stringify({
           page: page,
           pageSize: pageSize
@@ -158,8 +159,7 @@ var composeGenericStore = function composeGenericStore(create, options) {
         return new Promise(function (resolve, reject) {
           _query ? _query({
             page: page,
-            pageSize: pageSize,
-            identifier: identifier
+            pageSize: pageSize
           }, queryOptions).then(function (queryResults) {
             var _objectSpread2;
 
@@ -236,25 +236,7 @@ var composeGenericStore = function composeGenericStore(create, options) {
         });
       },
       indexes: {},
-      listeners: [// (id, item, status) => {
-        //     switch (status) {
-        //         case "clearing":
-        //             break;
-        //         case "inserting":
-        //             openDB.then((db) => {
-        //                 db.put(collection, item, id)
-        //             })
-        //             break;
-        //         case "removing":
-        //             openDB.then((db) => {
-        //                 db.delete(collection, id)
-        //             })
-        //             break;
-        //         default:
-        //             break;
-        //     }
-        // }
-      ],
+      listeners: [],
       search: function search(query) {
         return store().filterIndex(function (x) {
           return Object.values(x).join("").toLowerCase().includes(query.toLowerCase());

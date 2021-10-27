@@ -14,7 +14,6 @@ export interface StoreIndex {
 }
 export interface PageOptions {
     page: number,
-    identifier: string,
     pageSize: number,
 }
 export interface PaginatedQueryParameters extends Record<string, any> { }
@@ -22,6 +21,7 @@ export interface composeStoreOptions<DataType> {
     schema: RootSchemaObject,
     initial?: {},
     definition?: string
+    identifier?: string,
     validator?: Validator<DataType>
     indexes?: StoreIndex[]
     workspace?: any
