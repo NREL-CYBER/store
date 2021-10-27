@@ -62,21 +62,20 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
             set({ status, statusHistory: [...store().statusHistory.slice(0, 9), status] });
         },
         status,
-        queryResults: () => {
-            const { queryHash, queryIndex } = store();
-            const queryIdentifiers = queryIndex ? queryHash ? queryIndex[queryHash] : [] : []
-            return queryIdentifiers.map(id => store().retrieve(id)).filter(Boolean) as DataType[]
-        },
+        queryResults: [],
         query: ({ identifier, page, pageSize }, queryOptions, fullText) => {
-            return new Promise((resolve, reject) => {
-                const queryHash = window.btoa(JSON.stringify({ page, pageSize }) + JSON.stringify(queryOptions));
-                const queryIndex = store().queryIndex || {};
-                const queryHashIndex = queryIndex[queryHash];
-                if (typeof queryHashIndex !== "undefined")
-                    // We've already got the results to this query stored
-                    resolve(store().queryResults())
+            const queryHash = window.btoa(JSON.stringify({ page, pageSize }) + JSON.stringify(queryOptions));
+            const queryIndex = store().queryIndex || {};
+            const queryHashIndex = queryIndex[queryHash];
+            if (typeof queryHashIndex !== "undefined")
+                // We've already got the results to this query stored
+                return new Promise<any[]>((resolve) => {
+                    resolve(store().queryResults)
+                })
 
-                store().setStatus("querying")
+            store().setStatus("querying")
+
+            return new Promise((resolve, reject) => {
                 query ?
                     query({ page, pageSize, identifier }, queryOptions).then((queryResults) => {
                         set({
@@ -84,6 +83,7 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
                             queryIndex: {
                                 ...store().queryIndex,
                                 [queryHash]: queryResults.map(x => (x as any)[identifier])
+                                , queryResults
                             }
                         })
                         resolve(queryResults);
@@ -117,7 +117,7 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
                         });
                         const queryResults = items.slice(start, end)
                         const queryIndexEntry = queryResults.map(x => (x as any)[identifier])
-                        set({ status: "idle", queryIndex: { ...queryIndex, [queryHash]: queryIndexEntry } })
+                        set({ status: "idle", queryResults, queryIndex: { ...queryIndex, [queryHash]: queryIndexEntry } })
                         resolve(queryResults);
                     })()
             })
