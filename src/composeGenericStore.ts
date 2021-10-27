@@ -1,9 +1,8 @@
-import { resolvePlugin } from "@babel/core";
 import { ErrorObject } from "ajv";
 import produce from "immer";
 import { v4 } from "uuid";
 import Validator from "validator";
-import { StateCreator, UseStore } from "zustand";
+import { StateCreator, UseBoundStore } from "zustand";
 import { composeStoreOptions } from ".";
 import { Store, StoreListener, StoreStatus } from "./store";
 
@@ -15,7 +14,7 @@ import { Store, StoreListener, StoreStatus } from "./store";
  */
 
 
-const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCreator<Store<DataType>>) => UseStore<Store<DataType>>, options: composeStoreOptions<DataType>) => {
+const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCreator<Store<DataType>>) => UseBoundStore<Store<DataType>>, options: composeStoreOptions<DataType>) => {
     const { schema, definition, initial, workspace, indexes, fetch, query } = options;
     const validator = options.validator;
     const collection = definition ? definition : schema.$id ? schema.$id : "errorCollection"
@@ -62,7 +61,6 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
             set({ status, statusHistory: [...store().statusHistory.slice(0, 9), status] });
         },
         status,
-        queryResults: [],
         query: ({ identifier, page, pageSize }, queryOptions, fullText) => {
             const queryHash = window.btoa(JSON.stringify({ page, pageSize }) + JSON.stringify(queryOptions));
             const queryIndex = store().queryIndex || {};
@@ -70,7 +68,9 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
             if (typeof queryHashIndex !== "undefined")
                 // We've already got the results to this query stored
                 return new Promise<any[]>((resolve) => {
-                    resolve(store().queryResults)
+                    resolve(
+                        queryHashIndex.map((id) => store().retrieve(id)).filter(Boolean)
+                    )
                 })
 
             store().setStatus("querying")
@@ -83,7 +83,8 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
                             queryIndex: {
                                 ...store().queryIndex,
                                 [queryHash]: queryResults.map(x => (x as any)[identifier])
-                                , queryResults
+                                ,
+                                queryResults
                             }
                         })
                         resolve(queryResults);
@@ -106,7 +107,7 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
                         const items = store().filter(item => {
                             return attributes.map(([attribute, value]) => {
                                 const itemValue = (item as any)[attribute]
-                                if (value.length === 0)
+                                if (value.length === 0 || typeof value === "undefined")
                                     return true
 
                                 if (typeof itemValue === "string" && typeof value === "string")
@@ -117,7 +118,7 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
                         });
                         const queryResults = items.slice(start, end)
                         const queryIndexEntry = queryResults.map(x => (x as any)[identifier])
-                        set({ status: "idle", queryResults, queryIndex: { ...queryIndex, [queryHash]: queryIndexEntry } })
+                        set({ status: "idle", queryIndex: { ...queryIndex, [queryHash]: queryIndexEntry } })
                         resolve(queryResults);
                     })()
             })

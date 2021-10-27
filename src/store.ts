@@ -84,7 +84,6 @@ export type Store<dataType> = {
    * Use Injected function to query a larger collection. results stored in page as
    */
   query: <QueryParameters extends PaginatedQueryParameters = {}>(page: PageOptions, options: QueryParameters, fulltext?: string) => Promise<dataType[]>
-  queryResults: dataType[]
   queryIndex?: Record<string, string[]>
   queryHash?: string
   /**

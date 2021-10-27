@@ -138,40 +138,36 @@ var composeGenericStore = function composeGenericStore(create, options) {
         });
       },
       status: status,
-      queryResults: function queryResults() {
-        var _store = store(),
-            queryHash = _store.queryHash,
-            queryIndex = _store.queryIndex;
-
-        var queryIdentifiers = queryIndex ? queryHash ? queryIndex[queryHash] : [] : [];
-        return queryIdentifiers.map(function (id) {
-          return store().retrieve(id);
-        }).filter(Boolean);
-      },
       query: function query(_ref2, queryOptions, fullText) {
         var identifier = _ref2.identifier,
             page = _ref2.page,
             pageSize = _ref2.pageSize;
+        var queryHash = window.btoa(JSON.stringify({
+          page: page,
+          pageSize: pageSize
+        }) + JSON.stringify(queryOptions));
+        var queryIndex = store().queryIndex || {};
+        var queryHashIndex = queryIndex[queryHash];
+        if (typeof queryHashIndex !== "undefined") // We've already got the results to this query stored
+          return new Promise(function (resolve) {
+            resolve(queryHashIndex.map(function (id) {
+              return store().retrieve(id);
+            }).filter(Boolean));
+          });
+        store().setStatus("querying");
         return new Promise(function (resolve, reject) {
-          var queryHash = window.btoa(JSON.stringify({
-            page: page,
-            pageSize: pageSize
-          }) + JSON.stringify(queryOptions));
-          var queryIndex = store().queryIndex || {};
-          var queryHashIndex = queryIndex[queryHash];
-          if (typeof queryHashIndex !== "undefined") // We've already got the results to this query stored
-            resolve(store().queryResults());
-          store().setStatus("querying");
           _query ? _query({
             page: page,
             pageSize: pageSize,
             identifier: identifier
           }, queryOptions).then(function (queryResults) {
+            var _objectSpread2;
+
             set({
               status: 'idle',
-              queryIndex: _objectSpread(_objectSpread({}, store().queryIndex), {}, _defineProperty({}, queryHash, queryResults.map(function (x) {
+              queryIndex: _objectSpread(_objectSpread({}, store().queryIndex), {}, (_objectSpread2 = {}, _defineProperty(_objectSpread2, queryHash, queryResults.map(function (x) {
                 return x[identifier];
-              })))
+              })), _defineProperty(_objectSpread2, "queryResults", queryResults), _objectSpread2))
             });
             resolve(queryResults);
           })["catch"](function (error) {
@@ -197,7 +193,7 @@ var composeGenericStore = function composeGenericStore(create, options) {
                     value = _ref4[1];
 
                 var itemValue = item[attribute];
-                if (value.length === 0) return true;
+                if (value.length === 0 || typeof value === "undefined") return true;
                 if (typeof itemValue === "string" && typeof value === "string") return itemValue === value || itemValue.toLowerCase().includes(value.toLowerCase());
                 return itemValue === value || value.includes(itemValue);
               }).reduce(function (a, b) {
@@ -362,7 +358,7 @@ var composeGenericStore = function composeGenericStore(create, options) {
         var clearCache = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : true;
         return new Promise( /*#__PURE__*/function () {
           var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(resolve, reject) {
-            var index, _store2, lazyLoadValidator, valid, _records, _errors$pop, _validator3, errors;
+            var index, _store, lazyLoadValidator, valid, _records, _errors$pop, _validator3, errors;
 
             return regeneratorRuntime.wrap(function _callee4$(_context4) {
               while (1) {
@@ -370,7 +366,7 @@ var composeGenericStore = function composeGenericStore(create, options) {
                   case 0:
                     store().setStatus("inserting");
                     index = _toConsumableArray(store().index);
-                    _store2 = store(), lazyLoadValidator = _store2.lazyLoadValidator;
+                    _store = store(), lazyLoadValidator = _store.lazyLoadValidator;
 
                     if (!validate) {
                       _context4.next = 9;
@@ -573,8 +569,8 @@ var composeGenericStore = function composeGenericStore(create, options) {
         });
       },
       activeInstance: function activeInstance() {
-        var _store3 = store(),
-            active = _store3.active;
+        var _store2 = store(),
+            active = _store2.active;
 
         return active ? store().retrieve(active) : undefined;
       },

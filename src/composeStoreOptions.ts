@@ -6,7 +6,6 @@
  * @param initial The initial value of the store
  */
 
-import { Draft } from "immer";
 import Validator, { RootSchemaObject } from "validator";
 
 export interface StoreIndex {
