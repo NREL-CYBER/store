@@ -133,8 +133,12 @@ export type Store<dataType> = {
    * save the schema from initialization so we don't have to wait for the validator to boot
    * when we make a form
    */
-  schema: RootSchemaObject
-  ,
+  schema: RootSchemaObject,
+  /**
+   * Sometimes we like to update the schema with use-added enums and foreign key refs.
+   * use this with caution.
+   */
+  updateSchema: (change: (schema: RootSchemaObject) => void) => Promise<string>,
 
   /**
    * filter items by predicate

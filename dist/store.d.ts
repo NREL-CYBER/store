@@ -128,6 +128,11 @@ export declare type Store<dataType> = {
      */
     schema: RootSchemaObject;
     /**
+     * Sometimes we like to update the schema with use-added enums and foreign key refs.
+     * use this with caution.
+     */
+    updateSchema: (change: (schema: RootSchemaObject) => void) => Promise<string>;
+    /**
      * filter items by predicate
      */
     filter: (predicate: ((e: dataType) => boolean)) => dataType[];

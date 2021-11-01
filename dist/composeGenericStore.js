@@ -80,6 +80,15 @@ var composeGenericStore = function composeGenericStore(create, options) {
   return create(function (set, store) {
     return {
       schema: schema,
+      updateSchema: function updateSchema(updateFn) {
+        return new Promise(function (resolve) {
+          var newSchema = (0, _immer["default"])(store().schema, updateFn);
+          set({
+            schema: newSchema
+          });
+          resolve("complete");
+        });
+      },
       workspace: workspace,
       lazyLoadWorkspace: function lazyLoadWorkspace() {
         return new Promise( /*#__PURE__*/function () {

@@ -1,7 +1,7 @@
 import { ErrorObject } from "ajv";
 import produce from "immer";
 import { v4 } from "uuid";
-import Validator from "validator";
+import Validator, { RootSchemaObject } from "validator";
 import { StateCreator, UseBoundStore } from "zustand";
 import { composeStoreOptions } from ".";
 import { Store, StoreListener, StoreStatus } from "./store";
@@ -37,6 +37,13 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
     // Create the implementation of the store type now that we have the initial values prepared.
     return create((set, store) => ({
         schema,
+        updateSchema: (updateFn) => {
+            return new Promise<string>((resolve) => {
+                const newSchema = produce<RootSchemaObject>(store().schema, updateFn);
+                set({ schema: newSchema })
+                resolve("complete");
+            })
+        },
         workspace,
         lazyLoadWorkspace: () => {
             return new Promise(async (complete) => {
