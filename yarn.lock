@@ -4645,8 +4645,8 @@ validate-npm-package-license@^3.0.1:
     spdx-expression-parse "^3.0.0"
 
 "validator@https://github.com/NREL-CYBER/validator":
-  version "4.4.2"
-  resolved "https://github.com/NREL-CYBER/validator#848cd588a3f485d5611d54bcec27151fe07eb92f"
+  version "13.7.0"
+  resolved "https://github.com/NREL-CYBER/validator#363e955495b28bf87cd830e7a5254c92b42e589f"
   dependencies:
     "@types/uuid" "^8.3.0"
     ajv "^7.2.1"
