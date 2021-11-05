@@ -344,42 +344,43 @@ var composeGenericStore = function composeGenericStore(create, options) {
 
         return remove;
       }(),
-      insert: function insert(itemIndex, dataToAdd) {
+      insert: function insert(itemIndexRaw, dataToAdd) {
         var validate = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
         var clearCache = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : true;
         return new Promise( /*#__PURE__*/function () {
           var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(resolve, reject) {
-            var index, _store, lazyLoadValidator, valid, _records, _errors$pop, _validator3, errors;
+            var itemIndex, index, _store, lazyLoadValidator, valid, _records, _errors$pop, _validator3, errors;
 
             return regeneratorRuntime.wrap(function _callee4$(_context4) {
               while (1) {
                 switch (_context4.prev = _context4.next) {
                   case 0:
+                    itemIndex = itemIndexRaw.toLowerCase();
                     store().setStatus("inserting");
                     index = _toConsumableArray(store().index);
                     _store = store(), lazyLoadValidator = _store.lazyLoadValidator;
 
                     if (!validate) {
-                      _context4.next = 9;
+                      _context4.next = 10;
                       break;
                     }
 
-                    _context4.next = 6;
+                    _context4.next = 7;
                     return lazyLoadValidator();
 
-                  case 6:
+                  case 7:
                     _context4.t0 = _context4.sent.validate(dataToAdd);
-                    _context4.next = 10;
+                    _context4.next = 11;
                     break;
 
-                  case 9:
+                  case 10:
                     _context4.t0 = true;
 
-                  case 10:
+                  case 11:
                     valid = _context4.t0;
 
                     if (!valid) {
-                      _context4.next = 22;
+                      _context4.next = 23;
                       break;
                     }
 
@@ -391,22 +392,22 @@ var composeGenericStore = function composeGenericStore(create, options) {
                       records: _records,
                       queryIndex: undefined
                     });
-                    _context4.next = 18;
+                    _context4.next = 19;
                     return Promise.all(store().listeners.map(function (callback) {
                       return callback(itemIndex, _objectSpread({}, dataToAdd), "inserting");
                     }));
 
-                  case 18:
+                  case 19:
                     store().setStatus("idle");
                     resolve(itemIndex);
-                    _context4.next = 29;
+                    _context4.next = 30;
                     break;
 
-                  case 22:
-                    _context4.next = 24;
+                  case 23:
+                    _context4.next = 25;
                     return lazyLoadValidator();
 
-                  case 24:
+                  case 25:
                     _validator3 = _context4.sent;
 
                     _validator3.validate(dataToAdd);
@@ -423,7 +424,7 @@ var composeGenericStore = function composeGenericStore(create, options) {
 
                     reject((errors === null || errors === void 0 ? void 0 : (_errors$pop = errors.pop()) === null || _errors$pop === void 0 ? void 0 : _errors$pop.message) || collection + " item not valid!");
 
-                  case 29:
+                  case 30:
                   case "end":
                     return _context4.stop();
                 }
