@@ -195,8 +195,9 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
                 resolve("succuss");
             })
         },
-        insert: (itemIndex, dataToAdd, validate = false, clearCache = true) => {
+        insert: (itemIndexRaw, dataToAdd, validate = false, clearCache = true) => {
             return new Promise<string>(async (resolve, reject) => {
+                const itemIndex = itemIndexRaw.toLowerCase();
                 store().setStatus("inserting");
                 let index = [...store().index];
                 const { lazyLoadValidator } = store();
