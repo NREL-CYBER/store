@@ -681,36 +681,24 @@ var composeGenericStore = function composeGenericStore(create, options) {
           };
         }());
       },
-      clear: function () {
-        var _clear = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee10() {
-          return regeneratorRuntime.wrap(function _callee10$(_context10) {
-            while (1) {
-              switch (_context10.prev = _context10.next) {
-                case 0:
-                  store().setStatus("clearing");
-                  store()["import"]({});
-                  _context10.next = 4;
-                  return Promise.all(store().listeners.map(function (callback) {
-                    return callback("", {}, "clearing");
-                  }));
-
-                case 4:
-                  store().setStatus("idle");
-
-                case 5:
-                case "end":
-                  return _context10.stop();
-              }
-            }
-          }, _callee10);
-        }));
-
-        function clear() {
-          return _clear.apply(this, arguments);
+      clear: function clear() {
+        store().setStatus("clearing");
+        store()["import"]({});
+        return Promise.all(store().listeners.map(function (callback) {
+          return callback("", {}, "clearing");
+        })).then(function () {
+          store().setStatus("idle");
+        });
+      },
+      clearWorkspace: function clearWorkspace() {
+        if (workspace) {
+          store().setWorkspaceInstance(_objectSpread({}, workspace));
+        } else {
+          store().lazyLoadValidator().then(function (v) {
+            store().setWorkspaceInstance(v.makeWorkspace());
+          });
         }
-
-        return clear;
-      }(),
+      },
       "export": function _export() {
         store().setStatus("exporting");
         var result = JSON.stringify(store().records);

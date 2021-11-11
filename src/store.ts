@@ -116,7 +116,12 @@ export type Store<dataType> = {
   /**
    * delete the collection (this may wipe a db table)
    */
-  clear: () => void
+  clear: () => Promise<void>
+  /**
+   * delete the collection (this may wipe a db table)
+   */
+  clearWorkspace: () => void
+
   /**
    * mark a particular item as "active" 
    */

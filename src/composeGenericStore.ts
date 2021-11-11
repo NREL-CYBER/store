@@ -318,11 +318,21 @@ const composeGenericStore = <StoreType, DataType>(create: (storeCreator: StateCr
                 store().setStatus("idle");
                 errors.length === 0 ? resolve() : reject();
             })
-        }, clear: async () => {
+        }, clear: () => {
             store().setStatus("clearing");
             store().import({});
-            await Promise.all(store().listeners.map(callback => callback("", {}, "clearing")))
-            store().setStatus("idle");
+            return Promise.all(store().listeners.map(callback => callback("", {}, "clearing"))).then(() => {
+                store().setStatus("idle");
+            })
+        },
+        clearWorkspace: () => {
+            if (workspace) {
+                store().setWorkspaceInstance({ ...workspace })
+            } else {
+                store().lazyLoadValidator().then((v) => {
+                    store().setWorkspaceInstance(v.makeWorkspace())
+                });
+            }
         },
         export: () => {
             store().setStatus("exporting");
