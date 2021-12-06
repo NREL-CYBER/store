@@ -13,7 +13,7 @@
     "immer": "^8.0.2",
     "uuid": "^8.3.2",
     "validator": "https://github.com/NREL-CYBER/validator",
-    "zustand": "^3.6.1"
+    "zustand": "^3.6.6"
   },
   "peerDependencies": {
     "react": "^17.0.2"

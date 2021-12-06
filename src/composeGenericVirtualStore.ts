@@ -1,5 +1,5 @@
 import produce from "immer";
-import { StateCreator, UseBoundStore } from "zustand";
+import { StateCreator, UseStore } from "zustand";
 import { composeVirtualStoreOptions } from "./composeStoreOptions";
 import { StoreStatus } from "./store";
 import { VirtualStore } from "./virtual-store";
@@ -10,7 +10,7 @@ import { VirtualStore } from "./virtual-store";
  */
 
 
-const composeGenericVirtualStore = <StoreType, DataType>(create: (storeCreator: StateCreator<VirtualStore<DataType>>) => UseBoundStore<VirtualStore<DataType>>, options: composeVirtualStoreOptions<DataType>) => {
+const composeGenericVirtualStore = <StoreType, DataType>(create: (storeCreator: StateCreator<VirtualStore<DataType>>) => UseStore<VirtualStore<DataType>>, options: composeVirtualStoreOptions<DataType>) => {
     const { synchronize, fetch, index } = options;
     const status: StoreStatus = "booting"
 
