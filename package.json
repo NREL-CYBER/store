@@ -10,10 +10,10 @@
   "dependencies": {
     "ajv": "^7.2.1",
     "ajv-formats": "^1.5.1",
-    "immer": "^8.0.2",
+    "immer": "^9.0.7",
     "uuid": "^8.3.2",
     "validator": "https://github.com/NREL-CYBER/validator",
-    "zustand": "^3.6.7"
+    "zustand": "^3.6.8"
   },
   "peerDependencies": {
     "react": "^17.0.2"
