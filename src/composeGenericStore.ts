@@ -2,7 +2,7 @@ import { ErrorObject } from "ajv";
 import produce from "immer";
 import { v4 } from "uuid";
 import Validator, { RootSchemaObject } from "validator";
-import { StateCreator, UseBoundStore, UseStore } from "zustand";
+import { StateCreator, UseBoundStore } from "zustand";
 import { composeStoreOptions } from ".";
 import { Store, StoreListener, StoreStatus } from "./store";
 
